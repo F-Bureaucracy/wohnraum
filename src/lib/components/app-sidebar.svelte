@@ -1,8 +1,8 @@
 <script lang="ts" module>
 	import AudioWaveformIcon from "@lucide/svelte/icons/audio-waveform";
 	import CommandIcon from "@lucide/svelte/icons/command";
-	import GalleryVerticalEndIcon from "@lucide/svelte/icons/gallery-vertical-end";
 	import UsersIcon from "@lucide/svelte/icons/users";
+	import faviconUrl from "$lib/assets/favicon.svg";
 	import KeyIcon from "@lucide/svelte/icons/key";
 	import Building2Icon from "@lucide/svelte/icons/building-2";
 	import FileTextIcon from "@lucide/svelte/icons/file-text";
@@ -11,8 +11,8 @@
 	const data = {
 		teams: [
 			{
-				name: "F-Bureaucracy",
-				logo: GalleryVerticalEndIcon,
+				name: "Osnabrück",
+				logo: faviconUrl,
 				plan: "Enterprise",
 			},
 			{

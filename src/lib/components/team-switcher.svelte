@@ -8,6 +8,10 @@
 	// This should be `Component` after @lucide/svelte updates types
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let { teams }: { teams: { name: string; logo: any; plan: string }[] } = $props();
+
+	function isImageSrc(logo: unknown): logo is string {
+		return typeof logo === "string";
+	}
 	const sidebar = useSidebar();
 
 	// svelte-ignore state_referenced_locally
@@ -25,9 +29,17 @@
 						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 					>
 						<div
-							class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
+							class="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden {isImageSrc(
+								activeTeam.logo,
+							)
+								? 'bg-white'
+								: 'bg-sidebar-primary text-sidebar-primary-foreground'}"
 						>
-							<activeTeam.logo class="size-4" />
+							{#if isImageSrc(activeTeam.logo)}
+								<img src={activeTeam.logo} alt="" class="size-5" />
+							{:else}
+								<activeTeam.logo class="size-4" />
+							{/if}
 						</div>
 						<div class="grid flex-1 text-start text-sm leading-tight">
 							<span class="truncate font-medium">
@@ -48,8 +60,12 @@
 				<DropdownMenu.Label class="text-muted-foreground text-xs">Teams</DropdownMenu.Label>
 				{#each teams as team, index (team.name)}
 					<DropdownMenu.Item onSelect={() => (activeTeam = team)} class="gap-2 p-2">
-						<div class="flex size-6 items-center justify-center rounded-md border">
-							<team.logo class="size-3.5 shrink-0" />
+						<div class="flex size-6 items-center justify-center rounded-md border overflow-hidden">
+							{#if isImageSrc(team.logo)}
+								<img src={team.logo} alt="" class="size-4" />
+							{:else}
+								<team.logo class="size-3.5 shrink-0" />
+							{/if}
 						</div>
 						{team.name}
 						<DropdownMenu.Shortcut>⌘{index + 1}</DropdownMenu.Shortcut>

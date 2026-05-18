@@ -13,6 +13,13 @@ const config = {
     // See https://svelte.dev/docs/kit/adapters for more information about adapters.
     adapter: adapter(),
 
+    alias: {
+      // Map $xyz to the src/xyz folder
+      $ui: "./src/lib/components/ui",
+      $components: "./src/lib/components",
+      $mastra: "./src/mastra",
+    },
+
     typescript: {
       config: (config) => ({
         ...config,
