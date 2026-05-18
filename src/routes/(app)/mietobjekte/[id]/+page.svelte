@@ -30,6 +30,17 @@
 		month: '2-digit',
 		year: 'numeric',
 	});
+
+	const eckdaten = $derived([
+		{ icon: HomeIcon, label: 'Zimmer', value: numberFmt.format(m.zimmer) },
+		{ icon: RulerIcon, label: 'Wohnfläche', value: `${numberFmt.format(m.flaeche)} m²` },
+		{ icon: EuroIcon, label: 'Kaltmiete', value: currencyFmt.format(m.kaltmiete) },
+		{ icon: EuroIcon, label: 'Nebenkosten', value: currencyFmt.format(m.nebenkosten) },
+		{ icon: EuroIcon, label: 'Kaution', value: currencyFmt.format(m.kaution) },
+		{ icon: BuildingIcon, label: 'Etage', value: m.etage },
+		{ icon: CalendarIcon, label: 'Baujahr', value: String(m.baujahr) },
+		{ icon: FlameIcon, label: 'Heizung', value: m.heizung },
+	]);
 </script>
 
 <header
@@ -54,13 +65,11 @@
 
 <div class="flex flex-1 flex-col gap-4 p-4 pt-0">
 	<div class="flex items-start justify-between gap-4">
-		<div class="space-y-1">
-			<div class="flex items-center gap-2">
-				<Button href="/mietobjekte" variant="ghost" size="sm">
-					<ArrowLeftIcon class="size-4" />
-					Zurück
-				</Button>
-			</div>
+		<div class="space-y-2">
+			<Button href="/mietobjekte" variant="ghost" size="sm" class="-ml-2">
+				<ArrowLeftIcon class="size-4" />
+				Zurück
+			</Button>
 			<h1 class="text-2xl font-semibold">{m.adresse}</h1>
 			<div class="flex items-center gap-2">
 				<Badge variant="secondary">{m.zimmer} Zimmer</Badge>
@@ -83,22 +92,18 @@
 					<Card.Title>Eckdaten</Card.Title>
 				</Card.Header>
 				<Card.Content class="grid gap-4 sm:grid-cols-2">
-					<DetailRow icon={HomeIcon} label="Zimmer" value={numberFmt.format(m.zimmer)} />
-					<DetailRow
-						icon={RulerIcon}
-						label="Wohnfläche"
-						value={`${numberFmt.format(m.flaeche)} m²`}
-					/>
-					<DetailRow icon={EuroIcon} label="Kaltmiete" value={currencyFmt.format(m.kaltmiete)} />
-					<DetailRow
-						icon={EuroIcon}
-						label="Nebenkosten"
-						value={currencyFmt.format(m.nebenkosten)}
-					/>
-					<DetailRow icon={EuroIcon} label="Kaution" value={currencyFmt.format(m.kaution)} />
-					<DetailRow icon={BuildingIcon} label="Etage" value={m.etage} />
-					<DetailRow icon={CalendarIcon} label="Baujahr" value={String(m.baujahr)} />
-					<DetailRow icon={FlameIcon} label="Heizung" value={m.heizung} />
+					{#each eckdaten as row (row.label)}
+						{@const Icon = row.icon}
+						<div class="flex items-center gap-3">
+							<div class="bg-muted flex size-9 items-center justify-center rounded-md">
+								<Icon class="size-4" />
+							</div>
+							<div>
+								<div class="text-muted-foreground text-xs">{row.label}</div>
+								<div class="text-sm font-medium">{row.value}</div>
+							</div>
+						</div>
+					{/each}
 				</Card.Content>
 			</Card.Root>
 
@@ -142,7 +147,7 @@
 				</Card.Content>
 			</Card.Root>
 
-			<Card.Root class="overflow-hidden">
+			<Card.Root class="overflow-hidden pb-0">
 				<Card.Header>
 					<Card.Title>Lage</Card.Title>
 				</Card.Header>
@@ -156,12 +161,10 @@
 						<Marker lnglat={{ lng: m.lng, lat: m.lat }} />
 					</MapLibre>
 				</div>
-				<Card.Footer class="text-muted-foreground text-xs">
+				<Card.Footer class="text-muted-foreground py-3 text-xs">
 					Erstellt am {dateFmt.format(m.createdAt)}
 				</Card.Footer>
 			</Card.Root>
 		</div>
 	</div>
 </div>
-
-{#snippet DetailRow(...)}{/snippet}

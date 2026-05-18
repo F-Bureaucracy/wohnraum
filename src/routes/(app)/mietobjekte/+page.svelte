@@ -10,8 +10,10 @@
 </script>
 
 <PageHeader title="Mietobjekte" />
-<div class="flex flex-1 gap-4 p-4 pt-0">
-	<div class="min-w-0 flex-1">
+<div
+	class="grid w-full min-w-0 flex-1 grid-cols-[minmax(0,1fr)_340px] gap-4 p-4 pt-0 xl:grid-cols-[minmax(0,1fr)_420px]"
+>
+	<div class="min-w-0">
 		<DataTable
 			columns={mietobjekteColumns}
 			{data}
@@ -24,7 +26,7 @@
 			editAction="/mietobjekte?/updateMietobjekt"
 		/>
 	</div>
-	<div class="w-[420px] shrink-0 overflow-hidden rounded-md border">
+	<div class="sticky top-4 h-[calc(100vh-6rem)] overflow-hidden rounded-md border">
 		<MapLibre
 			class="h-full w-full"
 			style="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"

@@ -264,12 +264,12 @@
 
 <PageHeader title="Dokumente" />
 
-<div class="flex flex-1 flex-col gap-8 p-4 pt-0">
+<div class="flex flex-1 flex-col gap-12 p-6 pt-4">
 	<!-- Vorlagen -->
-	<section class="flex flex-col gap-4">
-		<div class="flex items-end justify-between">
-			<div>
-				<h2 class="text-lg font-semibold">Vorlagen</h2>
+	<section class="flex flex-col gap-6">
+		<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+			<div class="space-y-1">
+				<h2 class="text-xl font-semibold tracking-tight">Vorlagen</h2>
 				<p class="text-sm text-muted-foreground">
 					Neues Dokument aus einer Vorlage erzeugen. Daten aus Mieter- und Objektakte werden
 					automatisch eingefügt.
@@ -281,40 +281,40 @@
 			</Button>
 		</div>
 
-		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+		<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
 			{#each templates as t (t.key)}
 				{@const Icon = t.icon}
 				<Card.Root
-					class="group cursor-pointer transition-colors hover:border-primary/40 hover:bg-muted/40"
+					class="group flex h-full cursor-pointer flex-col transition-colors hover:border-primary/40 hover:bg-muted/30"
 				>
-					<Card.Header class="gap-3">
-						<div class="flex items-start justify-between">
+					<Card.Header class="gap-4 pb-3">
+						<div class="flex items-start justify-between gap-3">
 							<div
-								class="flex size-9 items-center justify-center rounded-md border bg-background"
+								class="flex size-10 shrink-0 items-center justify-center rounded-lg border bg-background"
 							>
 								<Icon class="size-5 text-muted-foreground" />
 							</div>
 							<span
-								class="rounded-full px-2 py-0.5 text-xs font-medium {categoryStyles[t.category]}"
+								class="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium {categoryStyles[
+									t.category
+								]}"
 							>
 								{t.category}
 							</span>
 						</div>
-						<div class="flex flex-col gap-1">
-							<Card.Title class="text-base leading-tight">{t.title}</Card.Title>
-							<Card.Description class="line-clamp-2 text-xs">
+						<div class="flex flex-col gap-1.5">
+							<Card.Title class="text-base leading-snug">{t.title}</Card.Title>
+							<Card.Description class="line-clamp-2 text-sm leading-relaxed">
 								{t.description}
 							</Card.Description>
 						</div>
 					</Card.Header>
-					<Card.Footer class="justify-between pt-0">
-						<Button variant="ghost" size="sm" class="px-2 text-xs">
+					<Card.Footer class="mt-auto flex items-center justify-between gap-2 pt-2">
+						<Button variant="ghost" size="sm" class="text-xs text-muted-foreground">
 							<PenLineIcon class="size-3.5" />
-							Vorlage bearbeiten
+							Bearbeiten
 						</Button>
-						<Button size="sm" class="text-xs">
-							Erstellen
-						</Button>
+						<Button size="sm">Erstellen</Button>
 					</Card.Footer>
 				</Card.Root>
 			{/each}
@@ -324,10 +324,10 @@
 	<Separator />
 
 	<!-- Erstellte Dokumente -->
-	<section class="flex flex-col gap-4">
-		<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-			<div>
-				<h2 class="text-lg font-semibold">Erstellte Dokumente</h2>
+	<section class="flex flex-col gap-6">
+		<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+			<div class="space-y-1">
+				<h2 class="text-xl font-semibold tracking-tight">Erstellte Dokumente</h2>
 				<p class="text-sm text-muted-foreground">
 					{filtered.length} von {dokumente.length} Dokumenten
 				</p>
@@ -335,12 +335,12 @@
 			<div class="flex items-center gap-2">
 				<div class="relative">
 					<SearchIcon
-						class="absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+						class="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
 					/>
 					<Input
 						placeholder="Dokumente durchsuchen…"
 						bind:value={query}
-						class="w-72 pl-8"
+						class="w-72 pl-9"
 					/>
 				</div>
 				<Button variant="outline" size="sm">
@@ -350,35 +350,47 @@
 			</div>
 		</div>
 
-		<div class="rounded-md border">
+		<div class="overflow-hidden rounded-lg border bg-card">
 			<Table.Root>
 				<Table.Header>
-					<Table.Row>
-						<Table.Head class="w-[140px]">ID</Table.Head>
-						<Table.Head>Titel</Table.Head>
-						<Table.Head class="w-[200px]">Typ</Table.Head>
-						<Table.Head class="w-[180px]">Mieter</Table.Head>
-						<Table.Head class="w-[220px]">Mietobjekt</Table.Head>
-						<Table.Head class="w-[120px]">Bearbeiter</Table.Head>
-						<Table.Head class="w-[110px]">Erstellt</Table.Head>
-						<Table.Head class="w-[130px]">Status</Table.Head>
-						<Table.Head class="w-[60px]"></Table.Head>
+					<Table.Row class="hover:bg-transparent">
+						<Table.Head class="h-11 w-[140px] pl-4">ID</Table.Head>
+						<Table.Head class="h-11">Dokument</Table.Head>
+						<Table.Head class="h-11 w-[260px]">Zuordnung</Table.Head>
+						<Table.Head class="h-11 w-[120px]">Bearbeiter</Table.Head>
+						<Table.Head class="h-11 w-[110px]">Erstellt</Table.Head>
+						<Table.Head class="h-11 w-[130px]">Status</Table.Head>
+						<Table.Head class="h-11 w-[60px] pr-4"></Table.Head>
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
 					{#each filtered as d (d.id)}
 						<Table.Row>
-							<Table.Cell class="font-mono text-xs text-muted-foreground">{d.id}</Table.Cell>
-							<Table.Cell class="font-medium">{d.titel}</Table.Cell>
-							<Table.Cell class="text-muted-foreground">{d.typ}</Table.Cell>
-							<Table.Cell>{d.mieter}</Table.Cell>
-							<Table.Cell class="text-muted-foreground">{d.objekt}</Table.Cell>
-							<Table.Cell class="text-muted-foreground">{d.bearbeiter}</Table.Cell>
-							<Table.Cell class="text-muted-foreground">{fmtDate(d.erstelltAm)}</Table.Cell>
-							<Table.Cell>
+							<Table.Cell class="py-3 pl-4 align-top font-mono text-xs text-muted-foreground">
+								{d.id}
+							</Table.Cell>
+							<Table.Cell class="py-3 align-top">
+								<div class="flex flex-col gap-0.5">
+									<span class="font-medium leading-snug">{d.titel}</span>
+									<span class="text-xs text-muted-foreground">{d.typ}</span>
+								</div>
+							</Table.Cell>
+							<Table.Cell class="py-3 align-top">
+								<div class="flex flex-col gap-0.5">
+									<span class="leading-snug">{d.mieter}</span>
+									<span class="text-xs text-muted-foreground">{d.objekt}</span>
+								</div>
+							</Table.Cell>
+							<Table.Cell class="py-3 align-top text-muted-foreground">
+								{d.bearbeiter}
+							</Table.Cell>
+							<Table.Cell class="py-3 align-top text-muted-foreground">
+								{fmtDate(d.erstelltAm)}
+							</Table.Cell>
+							<Table.Cell class="py-3 align-top">
 								<Badge variant={statusVariant(d.status)}>{d.status}</Badge>
 							</Table.Cell>
-							<Table.Cell>
+							<Table.Cell class="py-3 pr-4 align-top">
 								<DropdownMenu.Root>
 									<DropdownMenu.Trigger>
 										{#snippet child({ props })}
@@ -411,7 +423,7 @@
 						</Table.Row>
 					{:else}
 						<Table.Row>
-							<Table.Cell colspan={9} class="h-24 text-center text-muted-foreground">
+							<Table.Cell colspan={7} class="h-24 text-center text-muted-foreground">
 								Keine Dokumente gefunden.
 							</Table.Cell>
 						</Table.Row>

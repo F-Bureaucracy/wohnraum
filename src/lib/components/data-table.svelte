@@ -151,7 +151,7 @@ const table = createSvelteTable({
 	</div>
 
 	<!-- 2. Your existing Table -->
-	<div class="w-full rounded-md border">
+	<div class="w-full overflow-x-auto rounded-md border">
 		<Table.Root class="table-fixed">
 			<Table.Header>
 				{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
