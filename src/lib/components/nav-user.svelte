@@ -20,6 +20,16 @@
 
 <Sidebar.Menu>
 	<Sidebar.MenuItem>
+		{#if !user}
+			<Sidebar.MenuButton size="lg">
+				{#snippet child({ props })}
+					<a href="/login" {...props}>
+						<LogOutIcon class="rotate-180" />
+						<span>Log in</span>
+					</a>
+				{/snippet}
+			</Sidebar.MenuButton>
+		{:else}
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
@@ -109,6 +119,7 @@
 				</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
+		{/if}
 	</Sidebar.MenuItem>
 </Sidebar.Menu>
 
