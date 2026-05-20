@@ -7,7 +7,7 @@
 
 <Sidebar.Provider>
 	<AppSidebar />
-	<Sidebar.Inset>
+	<Sidebar.Inset class="min-w-0">
 		{@render children()}
 	</Sidebar.Inset>
 </Sidebar.Provider>

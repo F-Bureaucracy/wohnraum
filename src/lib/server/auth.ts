@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth/minimal";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { sveltekitCookies } from "better-auth/svelte-kit";
+import { organization } from "better-auth/plugins";
 import { env } from "$env/dynamic/private";
 import { getRequestEvent } from "$app/server";
 import { db } from "$lib/server/db";
@@ -24,6 +25,34 @@ export const auth = betterAuth({
   },
   plugins: [
     auditLog(),
+    organization({
+      teams: {
+        enabled: true,
+      },
+      schema: {
+        organization: {
+          additionalFields: {
+            orgType: {
+              type: "string",
+              required: true,
+            },
+          },
+        },
+      },
+      organizationHooks: {
+        beforeCreateOrganization: async ({ organization, user }) => {
+          if (
+            organization.orgType === "administration" &&
+            user.role !== "super_admin"
+          ) {
+            throw new Error(
+              "Unauthorized to create public administration organizations",
+            );
+          }
+          return { data: organization };
+        },
+      },
+    }),
     sveltekitCookies(getRequestEvent), // make sure this is the last plugin in the array
   ],
 });
