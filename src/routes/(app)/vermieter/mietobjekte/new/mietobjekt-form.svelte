@@ -13,7 +13,8 @@ import { toast } from "svelte-sonner";
 
 let {
 	data,
-	compact = false,
+	title = "Neues Mietobjekt",
+	description = "Erfassen Sie eine Wohnung, die zur Vermietung angeboten wird.",
 	submitLabel = "Mietobjekt anlegen",
 	submittingLabel = "Wird gespeichert…",
 	action,
@@ -24,7 +25,8 @@ let {
 		form: SuperValidated<Infer<FormSchema>>;
 		organizations: Array<{ id: string; name: string }>;
 	};
-	compact?: boolean;
+	title?: string;
+	description?: string;
 	submitLabel?: string;
 	submittingLabel?: string;
 	action?: string;
@@ -90,21 +92,17 @@ function scrollToStep(id: string) {
 	method="POST"
 	{action}
 	use:enhance
-	class={compact ? "flex flex-col gap-6" : "flex flex-col gap-8 lg:flex-row lg:gap-12"}
+	class="flex flex-col gap-8 lg:flex-row lg:gap-12"
 >
-	{#if !compact}
-		<aside class="lg:w-56 lg:shrink-0">
-			<div class="lg:sticky lg:top-6">
-				<div class="mb-4">
-					<h1 class="text-xl font-semibold">Neues Mietobjekt</h1>
-					<p class="text-muted-foreground mt-1 text-sm">
-						Erfassen Sie eine Wohnung, die zur Vermietung angeboten wird.
-					</p>
-				</div>
-				<FormStepper {steps} {activeId} onSelect={scrollToStep} />
+	<aside class="lg:w-56 lg:shrink-0">
+		<div class="lg:sticky lg:top-6">
+			<div class="mb-4">
+				<h1 class="text-xl font-semibold">{title}</h1>
+				<p class="text-muted-foreground mt-1 text-sm">{description}</p>
 			</div>
-		</aside>
-	{/if}
+			<FormStepper {steps} {activeId} onSelect={scrollToStep} />
+		</div>
+	</aside>
 
 	<div class="flex min-w-0 flex-1 flex-col gap-6">
 		{#if orgs.length > 1}

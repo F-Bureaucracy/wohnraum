@@ -29,7 +29,8 @@
 	<div class="mx-auto w-full max-w-5xl p-4 md:p-6">
 		<MietobjektForm
 			data={{ form: data.form, organizations: data.organizations }}
-			compact
+			title="Mietobjekt bearbeiten"
+			description="Aktualisieren Sie die Angaben zu dieser Wohnung."
 			action="?/updateMietobjekt"
 			submitLabel="Speichern"
 			submittingLabel="Wird gespeichert…"
