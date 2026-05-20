@@ -18,14 +18,6 @@ export type Mietobjekt = {
   createdAt: Date;
 };
 
-const actionProps = {
-  entitySingular: "Mietobjekt",
-  entityPlural: "Mietobjekte",
-  idFieldName: "mietobjektId",
-  deleteAction: "/admin/mietobjekte?/deleteMietobjekt",
-  editAction: "/admin/mietobjekte?/updateMietobjekt",
-};
-
 const currencyFmt = new Intl.NumberFormat("de-DE", {
   style: "currency",
   currency: "EUR",
@@ -33,71 +25,82 @@ const currencyFmt = new Intl.NumberFormat("de-DE", {
 
 const numberFmt = new Intl.NumberFormat("de-DE");
 
-export const mietobjekteColumns: ColumnDef<Mietobjekt>[] = [
-  {
-    id: "select",
-    size: 40,
-    header: ({ table }) =>
-      renderComponent(Checkbox, {
-        checked: table.getIsAllPageRowsSelected(),
-        indeterminate:
-          table.getIsSomePageRowsSelected() &&
-          !table.getIsAllPageRowsSelected(),
-        onCheckedChange: (value) => table.toggleAllPageRowsSelected(!!value),
-        "aria-label": "Select all",
-      }),
-    cell: ({ row }) =>
-      renderComponent(Checkbox, {
-        checked: row.getIsSelected(),
-        onCheckedChange: (value) => row.toggleSelected(!!value),
-        "aria-label": "Select row",
-      }),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "adresse",
-    header: "Adresse",
-    size: 320,
-    cell: ({ row }) =>
-      linkCell(row.original.adresse, `/mietobjekte/${row.original.id}`),
-  },
-  {
-    accessorKey: "zimmer",
-    header: "Zimmer",
-    size: 100,
-    cell: ({ row }) => plainCell(numberFmt.format(row.original.zimmer)),
-  },
-  {
-    accessorKey: "flaeche",
-    header: "Fläche (m²)",
-    size: 120,
-    cell: ({ row }) =>
-      plainCell(`${numberFmt.format(row.original.flaeche)} m²`),
-  },
-  {
-    accessorKey: "kaltmiete",
-    header: "Kaltmiete",
-    size: 140,
-    cell: ({ row }) => plainCell(currencyFmt.format(row.original.kaltmiete)),
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Erstellt am",
-    size: 140,
-    cell: ({ row }) => dateCell(row.original.createdAt),
-  },
-  {
-    id: "actions",
-    size: 56,
-    cell: ({ row }) =>
-      renderComponent(DataTableActions, {
-        ids: [row.original.id],
-        title: row.original.adresse,
-        ...actionProps,
-      }),
-  },
-];
+export function createMietobjekteColumns(
+  basePath: string,
+): ColumnDef<Mietobjekt>[] {
+  const actionProps = {
+    entitySingular: "Mietobjekt",
+    entityPlural: "Mietobjekte",
+    idFieldName: "mietobjektId",
+    deleteAction: `${basePath}?/deleteMietobjekt`,
+    editAction: `${basePath}?/updateMietobjekt`,
+  };
+  return [
+    {
+      id: "select",
+      size: 40,
+      header: ({ table }) =>
+        renderComponent(Checkbox, {
+          checked: table.getIsAllPageRowsSelected(),
+          indeterminate:
+            table.getIsSomePageRowsSelected() &&
+            !table.getIsAllPageRowsSelected(),
+          onCheckedChange: (value) => table.toggleAllPageRowsSelected(!!value),
+          "aria-label": "Select all",
+        }),
+      cell: ({ row }) =>
+        renderComponent(Checkbox, {
+          checked: row.getIsSelected(),
+          onCheckedChange: (value) => row.toggleSelected(!!value),
+          "aria-label": "Select row",
+        }),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "adresse",
+      header: "Adresse",
+      size: 320,
+      cell: ({ row }) =>
+        linkCell(row.original.adresse, `${basePath}/${row.original.id}`),
+    },
+    {
+      accessorKey: "zimmer",
+      header: "Zimmer",
+      size: 100,
+      cell: ({ row }) => plainCell(numberFmt.format(row.original.zimmer)),
+    },
+    {
+      accessorKey: "flaeche",
+      header: "Fläche (m²)",
+      size: 120,
+      cell: ({ row }) =>
+        plainCell(`${numberFmt.format(row.original.flaeche)} m²`),
+    },
+    {
+      accessorKey: "kaltmiete",
+      header: "Kaltmiete",
+      size: 140,
+      cell: ({ row }) => plainCell(currencyFmt.format(row.original.kaltmiete)),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Erstellt am",
+      size: 140,
+      cell: ({ row }) => dateCell(row.original.createdAt),
+    },
+    {
+      id: "actions",
+      size: 56,
+      cell: ({ row }) =>
+        renderComponent(DataTableActions, {
+          ids: [row.original.id],
+          title: row.original.adresse,
+          ...actionProps,
+        }),
+    },
+  ];
+}
 
 function truncCell(value: string) {
   return renderSnippet(

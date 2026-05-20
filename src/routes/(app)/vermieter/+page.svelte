@@ -1,3 +1,8 @@
+<script lang="ts">
+	import PageHeader from '$lib/components/page-header.svelte';
+</script>
+
+<PageHeader title="Übersicht" />
 <div class="p-6">
 	<h1 class="text-2xl font-semibold">Willkommen</h1>
 	<p class="text-muted-foreground mt-2 text-sm">
