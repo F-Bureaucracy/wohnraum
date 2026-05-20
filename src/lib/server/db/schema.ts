@@ -1,6 +1,7 @@
 import {
   boolean,
   date,
+  doublePrecision,
   integer,
   pgTable,
   text,
@@ -50,6 +51,10 @@ export const mietobjekt = pgTable("mietobjekt", {
   petsAllowed: boolean("pets_allowed").notNull().default(false),
 
   description: text("description"),
+
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
+  geocodedAt: timestamp("geocoded_at"),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")

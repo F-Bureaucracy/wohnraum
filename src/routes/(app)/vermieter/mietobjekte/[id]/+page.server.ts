@@ -4,6 +4,7 @@ import { message, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import { db } from "$lib/server/db";
 import { mietobjekt } from "$lib/server/db/schema";
+import { geocodeAddress } from "$lib/server/geocode";
 import { loadMietobjektDetail } from "$lib/server/mietobjekt-mapping";
 import { mietobjektSchema } from "../new/schema";
 import type { Actions, PageServerLoad } from "./$types";
@@ -72,6 +73,38 @@ export const actions: Actions = {
       return message(form, "Ungültige Organisation", { status: 400 });
     }
 
+    const [existing] = await db
+      .select({
+        street: mietobjekt.street,
+        houseNumber: mietobjekt.houseNumber,
+        postalCode: mietobjekt.postalCode,
+        city: mietobjekt.city,
+      })
+      .from(mietobjekt)
+      .where(
+        and(
+          eq(mietobjekt.id, event.params.id),
+          eq(mietobjekt.organizationId, orgId),
+        ),
+      )
+      .limit(1);
+
+    const addressChanged =
+      !existing ||
+      existing.street !== d.street ||
+      existing.houseNumber !== d.houseNumber ||
+      existing.postalCode !== d.postalCode ||
+      existing.city !== d.city;
+
+    const geo = addressChanged
+      ? await geocodeAddress({
+          street: d.street,
+          houseNumber: d.houseNumber,
+          postalCode: d.postalCode,
+          city: d.city,
+        })
+      : null;
+
     try {
       const result = await db
         .update(mietobjekt)
@@ -80,6 +113,13 @@ export const actions: Actions = {
           houseNumber: d.houseNumber,
           postalCode: d.postalCode,
           city: d.city,
+          ...(addressChanged
+            ? {
+                latitude: geo?.latitude ?? null,
+                longitude: geo?.longitude ?? null,
+                geocodedAt: geo ? new Date() : null,
+              }
+            : {}),
           floor: d.floor || null,
           unit: d.unit || null,
           livingArea: d.livingArea,

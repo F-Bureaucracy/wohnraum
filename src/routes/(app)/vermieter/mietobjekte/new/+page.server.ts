@@ -4,6 +4,7 @@ import { zod4 } from "sveltekit-superforms/adapters";
 import { auth } from "$lib/server/auth";
 import { db } from "$lib/server/db";
 import { mietobjekt } from "$lib/server/db/schema";
+import { geocodeAddress } from "$lib/server/geocode";
 import type { Actions, PageServerLoad } from "./$types";
 import { mietobjektSchema } from "./schema";
 
@@ -46,6 +47,12 @@ export const actions: Actions = {
     }
 
     const d = form.data;
+    const geo = await geocodeAddress({
+      street: d.street,
+      houseNumber: d.houseNumber,
+      postalCode: d.postalCode,
+      city: d.city,
+    });
     try {
       await db.insert(mietobjekt).values({
         organizationId: d.organizationId,
@@ -53,6 +60,9 @@ export const actions: Actions = {
         houseNumber: d.houseNumber,
         postalCode: d.postalCode,
         city: d.city,
+        latitude: geo?.latitude ?? null,
+        longitude: geo?.longitude ?? null,
+        geocodedAt: geo ? new Date() : null,
         floor: d.floor || null,
         unit: d.unit || null,
         livingArea: d.livingArea,

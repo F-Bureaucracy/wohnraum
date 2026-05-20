@@ -13,6 +13,8 @@ export function mapMietobjektRow(r: Row): Mietobjekt {
     zimmer: r.rooms,
     flaeche: r.livingArea,
     kaltmiete: r.coldRentCents / 100,
+    lat: r.latitude ?? undefined,
+    lng: r.longitude ?? undefined,
     createdAt: r.createdAt,
   };
 }
