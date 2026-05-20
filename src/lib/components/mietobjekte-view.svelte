@@ -1,5 +1,6 @@
 <script lang="ts">
 	import 'maplibre-gl/dist/maplibre-gl.css';
+	import maplibregl from 'maplibre-gl';
 	import { MapLibre, Marker, Popup } from 'svelte-maplibre-gl';
 	import DataTable from '$lib/components/data-table.svelte';
 	import {
@@ -24,6 +25,20 @@
 
 	const columns = $derived(createMietobjekteColumns(basePath));
 	let activePopup: string | null = $state(null);
+	let map = $state<maplibregl.Map>();
+
+	$effect(() => {
+		if (!map || geo.length === 0) return;
+		if (geo.length === 1) {
+			map.jumpTo({ center: { lng: geo[0].lng, lat: geo[0].lat }, zoom: 14 });
+			return;
+		}
+		const bounds = geo.reduce(
+			(b, o) => b.extend([o.lng, o.lat]),
+			new maplibregl.LngLatBounds([geo[0].lng, geo[0].lat], [geo[0].lng, geo[0].lat]),
+		);
+		map.fitBounds(bounds, { padding: 48, animate: false });
+	});
 </script>
 
 <div
@@ -44,6 +59,7 @@
 	</div>
 	<div class="sticky top-4 h-[calc(100vh-6rem)] overflow-hidden rounded-md border">
 		<MapLibre
+			bind:map
 			class="h-full w-full"
 			style="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
 			center={{ lng: 8.0473, lat: 52.2799 }}

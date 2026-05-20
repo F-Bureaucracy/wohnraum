@@ -58,6 +58,37 @@ export const mietobjekt = pgTable("mietobjekt", {
     .notNull(),
 });
 
+export const mieter = pgTable("mieter", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  dateOfBirth: date("date_of_birth"),
+  gender: text("gender"),
+
+  email: text("email"),
+  phone: text("phone"),
+
+  householdSize: integer("household_size").notNull().default(1),
+  maxColdRentCents: integer("max_cold_rent_cents"),
+  needsBarrierFree: boolean("needs_barrier_free").notNull().default(false),
+  hasPets: boolean("has_pets").notNull().default(false),
+
+  availableFrom: date("available_from"),
+  notes: text("notes"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
 export const vermieterNote = pgTable("vermieter_note", {
   id: text("id")
     .primaryKey()

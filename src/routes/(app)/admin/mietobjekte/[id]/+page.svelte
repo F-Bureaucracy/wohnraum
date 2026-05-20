@@ -1,6 +1,4 @@
 <script lang="ts">
-	import 'maplibre-gl/dist/maplibre-gl.css';
-	import { MapLibre, Marker } from 'svelte-maplibre-gl';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
@@ -12,10 +10,9 @@
 	import RulerIcon from '@lucide/svelte/icons/ruler';
 	import EuroIcon from '@lucide/svelte/icons/euro';
 	import BuildingIcon from '@lucide/svelte/icons/building';
-	import FlameIcon from '@lucide/svelte/icons/flame';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
+	import UsersIcon from '@lucide/svelte/icons/users';
 	import UserIcon from '@lucide/svelte/icons/user';
-	import KeyIcon from '@lucide/svelte/icons/key';
 
 	let { data } = $props();
 	const m = $derived(data.mietobjekt);
@@ -31,16 +28,46 @@
 		year: 'numeric',
 	});
 
+	function formatDate(value: string | Date | null | undefined) {
+		if (!value) return '—';
+		const d = value instanceof Date ? value : new Date(value);
+		return dateFmt.format(d);
+	}
+
 	const eckdaten = $derived([
 		{ icon: HomeIcon, label: 'Zimmer', value: numberFmt.format(m.zimmer) },
+		{
+			icon: HomeIcon,
+			label: 'Schlafzimmer',
+			value: m.bedrooms != null ? numberFmt.format(m.bedrooms) : '—',
+		},
 		{ icon: RulerIcon, label: 'Wohnfläche', value: `${numberFmt.format(m.flaeche)} m²` },
-		{ icon: EuroIcon, label: 'Kaltmiete', value: currencyFmt.format(m.kaltmiete) },
-		{ icon: EuroIcon, label: 'Nebenkosten', value: currencyFmt.format(m.nebenkosten) },
-		{ icon: EuroIcon, label: 'Kaution', value: currencyFmt.format(m.kaution) },
-		{ icon: BuildingIcon, label: 'Etage', value: m.etage },
-		{ icon: CalendarIcon, label: 'Baujahr', value: String(m.baujahr) },
-		{ icon: FlameIcon, label: 'Heizung', value: m.heizung },
+		{ icon: BuildingIcon, label: 'Etage', value: m.floor ?? '—' },
+		{ icon: BuildingIcon, label: 'Einheit', value: m.unit ?? '—' },
+		{ icon: UsersIcon, label: 'Max. Bewohner', value: numberFmt.format(m.maxOccupants) },
+		{ icon: CalendarIcon, label: 'Verfügbar ab', value: formatDate(m.availableFrom) },
+		{
+			icon: CalendarIcon,
+			label: 'Mindestmietdauer',
+			value: m.minLeaseMonths != null ? `${m.minLeaseMonths} Monate` : '—',
+		},
 	]);
+
+	const kostenliste = $derived([
+		{ label: 'Kaltmiete', value: currencyFmt.format(m.kaltmiete) },
+		{ label: 'Nebenkosten', value: currencyFmt.format(m.nebenkosten) },
+		{ label: 'Heizkosten', value: currencyFmt.format(m.heizkosten) },
+		{ label: 'Kaution', value: currencyFmt.format(m.kaution) },
+	]);
+
+	const merkmale = $derived(
+		[
+			m.hasKitchen ? 'Einbauküche' : null,
+			m.hasBalcony ? 'Balkon' : null,
+			m.barrierFree ? 'Barrierefrei' : null,
+			m.petsAllowed ? 'Haustiere erlaubt' : null,
+		].filter((v): v is string => v !== null),
+	);
 </script>
 
 <header
@@ -66,17 +93,13 @@
 <div class="flex flex-1 flex-col gap-4 p-4 pt-0">
 	<div class="flex items-start justify-between gap-4">
 		<div class="space-y-2">
-			<Button href="/admin/mietobjekte" variant="ghost" size="sm" class="-ml-2">
-				<ArrowLeftIcon class="size-4" />
-				Zurück
-			</Button>
 			<h1 class="text-2xl font-semibold">{m.adresse}</h1>
-			<div class="flex items-center gap-2">
+			<div class="flex flex-wrap items-center gap-2">
 				<Badge variant="secondary">{m.zimmer} Zimmer</Badge>
 				<Badge variant="secondary">{numberFmt.format(m.flaeche)} m²</Badge>
-				<Badge variant={m.mieter ? 'default' : 'outline'}>
-					{m.mieter ? 'Vermietet' : 'Frei'}
-				</Badge>
+				{#each merkmale as merkmal (merkmal)}
+					<Badge variant="outline">{merkmal}</Badge>
+				{/each}
 			</div>
 		</div>
 		<div class="text-right">
@@ -109,66 +132,52 @@
 
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Beschreibung</Card.Title>
+					<Card.Title>Kosten</Card.Title>
 				</Card.Header>
-				<Card.Content>
-					<p class="text-muted-foreground text-sm leading-relaxed">{m.beschreibung}</p>
+				<Card.Content class="grid gap-4 sm:grid-cols-2">
+					{#each kostenliste as row (row.label)}
+						<div class="flex items-center gap-3">
+							<div class="bg-muted flex size-9 items-center justify-center rounded-md">
+								<EuroIcon class="size-4" />
+							</div>
+							<div>
+								<div class="text-muted-foreground text-xs">{row.label}</div>
+								<div class="text-sm font-medium">{row.value}</div>
+							</div>
+						</div>
+					{/each}
 				</Card.Content>
 			</Card.Root>
+
+			{#if m.beschreibung}
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>Beschreibung</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						<p class="text-muted-foreground text-sm leading-relaxed">{m.beschreibung}</p>
+					</Card.Content>
+				</Card.Root>
+			{/if}
 		</div>
 
 		<div class="space-y-4">
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Beteiligte</Card.Title>
+					<Card.Title>Vermieter</Card.Title>
 				</Card.Header>
-				<Card.Content class="space-y-3">
+				<Card.Content>
 					<div class="flex items-center gap-3">
 						<div class="bg-muted flex size-9 items-center justify-center rounded-full">
 							<UserIcon class="size-4" />
 						</div>
-						<div>
-							<div class="text-muted-foreground text-xs">Vermieter</div>
-							<div class="text-sm font-medium">{m.vermieter}</div>
-						</div>
-					</div>
-					<Separator />
-					<div class="flex items-center gap-3">
-						<div class="bg-muted flex size-9 items-center justify-center rounded-full">
-							<KeyIcon class="size-4" />
-						</div>
-						<div>
-							<div class="text-muted-foreground text-xs">Mieter</div>
-							<div class="text-sm font-medium">
-								{m.mieter ?? 'Aktuell nicht vermietet'}
-							</div>
-						</div>
+						<div class="text-sm font-medium">{m.vermieter ?? '—'}</div>
 					</div>
 				</Card.Content>
+				<Card.Footer class="text-muted-foreground text-xs">
+					Erstellt am {formatDate(m.createdAt)}
+				</Card.Footer>
 			</Card.Root>
-
-			{#if typeof m.lng === 'number' && typeof m.lat === 'number'}
-				{@const lng = m.lng}
-				{@const lat = m.lat}
-				<Card.Root class="overflow-hidden pb-0">
-					<Card.Header>
-						<Card.Title>Lage</Card.Title>
-					</Card.Header>
-					<div class="h-64 w-full">
-						<MapLibre
-							class="h-full w-full"
-							style="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
-							center={{ lng, lat }}
-							zoom={14}
-						>
-							<Marker lnglat={{ lng, lat }} />
-						</MapLibre>
-					</div>
-					<Card.Footer class="text-muted-foreground py-3 text-xs">
-						Erstellt am {dateFmt.format(m.createdAt)}
-					</Card.Footer>
-				</Card.Root>
-			{/if}
 		</div>
 	</div>
 </div>
