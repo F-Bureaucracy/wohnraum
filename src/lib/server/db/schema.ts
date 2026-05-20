@@ -1,4 +1,12 @@
-import { integer, pgTable, text } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  date,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
+import { organization } from "./auth.schema";
 
 export const task = pgTable("task", {
   id: text("id")
@@ -6,6 +14,48 @@ export const task = pgTable("task", {
     .$defaultFn(() => crypto.randomUUID()),
   title: text("title").notNull(),
   priority: integer("priority").notNull().default(1),
+});
+
+export const mietobjekt = pgTable("mietobjekt", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+
+  street: text("street").notNull(),
+  houseNumber: text("house_number").notNull(),
+  postalCode: text("postal_code").notNull(),
+  city: text("city").notNull(),
+  floor: text("floor"),
+  unit: text("unit"),
+
+  livingArea: integer("living_area").notNull(),
+  rooms: integer("rooms").notNull(),
+  bedrooms: integer("bedrooms"),
+  hasKitchen: boolean("has_kitchen").notNull().default(false),
+  hasBalcony: boolean("has_balcony").notNull().default(false),
+
+  coldRentCents: integer("cold_rent_cents").notNull(),
+  operatingCostsCents: integer("operating_costs_cents").notNull().default(0),
+  heatingCostsCents: integer("heating_costs_cents").notNull().default(0),
+  depositCents: integer("deposit_cents").notNull().default(0),
+
+  availableFrom: date("available_from").notNull(),
+  minLeaseMonths: integer("min_lease_months"),
+
+  maxOccupants: integer("max_occupants").notNull(),
+  barrierFree: boolean("barrier_free").notNull().default(false),
+  petsAllowed: boolean("pets_allowed").notNull().default(false),
+
+  description: text("description"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 export * from "./auth.schema";

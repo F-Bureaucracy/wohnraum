@@ -29,19 +29,6 @@ async function findAvailableSlug(baseSlug: string): Promise<string> {
   return `${baseSlug}${n}`;
 }
 
-export function slugify(name: string): string {
-  const slug = name
-    .toLowerCase()
-    .trim()
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  return slug || "user";
-}
-
 export const auth = betterAuth({
   baseURL: env.ORIGIN,
   secret: env.BETTER_AUTH_SECRET,

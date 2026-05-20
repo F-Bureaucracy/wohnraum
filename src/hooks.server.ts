@@ -9,6 +9,40 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
   if (session) {
     event.locals.session = session.session;
     event.locals.user = session.user;
+
+    try {
+      let activeOrg = await auth.api
+        .getFullOrganization({ headers: event.request.headers })
+        .catch(() => null);
+
+      if (!activeOrg) {
+        const orgs = await auth.api
+          .listOrganizations({ headers: event.request.headers })
+          .catch(() => [] as Array<{ id: string }>);
+        const first = orgs?.[0];
+        if (first) {
+          await auth.api.setActiveOrganization({
+            headers: event.request.headers,
+            body: { organizationId: first.id },
+          });
+          activeOrg = await auth.api
+            .getFullOrganization({ headers: event.request.headers })
+            .catch(() => null);
+        }
+      }
+
+      event.locals.activeOrganization = activeOrg
+        ? {
+            id: activeOrg.id,
+            name: activeOrg.name,
+            slug: activeOrg.slug,
+            orgType: (activeOrg as { orgType: string }).orgType,
+          }
+        : null;
+    } catch (err) {
+      console.error("[hooks] failed to load active organization", err);
+      event.locals.activeOrganization = null;
+    }
   }
 
   return svelteKitHandler({ event, resolve, auth, building });

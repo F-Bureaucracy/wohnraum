@@ -7,6 +7,12 @@ declare global {
     interface Locals {
       user?: User;
       session?: Session;
+      activeOrganization?: {
+        id: string;
+        name: string;
+        slug: string;
+        orgType: string;
+      } | null;
     }
 
     // interface Error {}

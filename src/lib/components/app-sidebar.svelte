@@ -59,23 +59,40 @@
 <script lang="ts">
 	import NavMain from "./nav-main.svelte";
 	import NavUser from "./nav-user.svelte";
-	import TeamSwitcher from "./team-switcher.svelte";
+	import TeamSwitcher, { type Organization } from "./team-switcher.svelte";
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
-	import type { ComponentProps } from "svelte";
+	import type { ComponentProps, Component } from "svelte";
+	import type { Infer, SuperValidated } from "sveltekit-superforms";
+	import type { CreateOrganizationSchema } from "../../routes/(app)/organizations/schema";
+
+	type NavItem = { title: string; url: string; icon: Component };
 
 	let {
 		ref = $bindable(null),
 		collapsible = "icon",
+		items = data.navMain,
+		organizations,
+		activeOrganizationId,
+		createOrganizationForm,
 		...restProps
-	}: ComponentProps<typeof Sidebar.Root> = $props();
+	}: ComponentProps<typeof Sidebar.Root> & {
+		items?: NavItem[];
+		organizations: Organization[];
+		activeOrganizationId: string | null;
+		createOrganizationForm: SuperValidated<Infer<CreateOrganizationSchema>>;
+	} = $props();
 </script>
 
 <Sidebar.Root bind:ref {collapsible} {...restProps}>
 	<Sidebar.Header>
-		<TeamSwitcher teams={data.teams} />
+		<TeamSwitcher
+			{organizations}
+			{activeOrganizationId}
+			{createOrganizationForm}
+		/>
 	</Sidebar.Header>
 	<Sidebar.Content>
-		<NavMain items={data.navMain} />
+		<NavMain {items} />
 	</Sidebar.Content>
 	<Sidebar.Footer>
 		<NavUser />
