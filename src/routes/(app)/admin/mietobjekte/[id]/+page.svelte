@@ -52,7 +52,7 @@
 		<Breadcrumb.Root>
 			<Breadcrumb.List>
 				<Breadcrumb.Item>
-					<Breadcrumb.Link href="/mietobjekte">Mietobjekte</Breadcrumb.Link>
+					<Breadcrumb.Link href="/admin/mietobjekte">Mietobjekte</Breadcrumb.Link>
 				</Breadcrumb.Item>
 				<Breadcrumb.Separator />
 				<Breadcrumb.Item>
@@ -66,7 +66,7 @@
 <div class="flex flex-1 flex-col gap-4 p-4 pt-0">
 	<div class="flex items-start justify-between gap-4">
 		<div class="space-y-2">
-			<Button href="/mietobjekte" variant="ghost" size="sm" class="-ml-2">
+			<Button href="/admin/mietobjekte" variant="ghost" size="sm" class="-ml-2">
 				<ArrowLeftIcon class="size-4" />
 				Zurück
 			</Button>

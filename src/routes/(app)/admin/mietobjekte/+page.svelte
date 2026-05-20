@@ -22,8 +22,8 @@
 			entitySingular="Mietobjekt"
 			entityPlural="Mietobjekte"
 			idFieldName="mietobjektId"
-			deleteAction="/mietobjekte?/deleteMietobjekt"
-			editAction="/mietobjekte?/updateMietobjekt"
+			deleteAction="/admin/mietobjekte?/deleteMietobjekt"
+			editAction="/admin/mietobjekte?/updateMietobjekt"
 		/>
 	</div>
 	<div class="sticky top-4 h-[calc(100vh-6rem)] overflow-hidden rounded-md border">

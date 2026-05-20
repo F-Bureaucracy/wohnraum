@@ -29,27 +29,27 @@
 		navMain: [
 			{
 				title: "Vermieter",
-				url: "/vermieter",
+				url: "/admin/vermieter",
 				icon: UsersIcon,
 			},
 			{
 				title: "Mieter",
-				url: "/mieter",
+				url: "/admin/mieter",
 				icon: KeyIcon,
 			},
 			{
 				title: "Mietobjekte",
-				url: "/mietobjekte",
+				url: "/admin/mietobjekte",
 				icon: Building2Icon,
 			},
 			{
 				title: "Dokumente",
-				url: "/dokumente",
+				url: "/admin/dokumente",
 				icon: FileTextIcon,
 			},
 			{
 				title: "Nachrichten",
-				url: "/nachrichten",
+				url: "/admin/nachrichten",
 				icon: MessageSquareIcon,
 			},
 		],

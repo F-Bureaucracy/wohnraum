@@ -22,8 +22,8 @@ const actionProps = {
   entitySingular: "Mietobjekt",
   entityPlural: "Mietobjekte",
   idFieldName: "mietobjektId",
-  deleteAction: "/mietobjekte?/deleteMietobjekt",
-  editAction: "/mietobjekte?/updateMietobjekt",
+  deleteAction: "/admin/mietobjekte?/deleteMietobjekt",
+  editAction: "/admin/mietobjekte?/updateMietobjekt",
 };
 
 const currencyFmt = new Intl.NumberFormat("de-DE", {

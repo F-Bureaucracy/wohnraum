@@ -20,8 +20,8 @@ const actionProps = {
   entitySingular: "Mieter",
   entityPlural: "Mieter",
   idFieldName: "mieterId",
-  deleteAction: "/mieter?/deleteMieter",
-  editAction: "/mieter?/updateMieter",
+  deleteAction: "/admin/mieter?/deleteMieter",
+  editAction: "/admin/mieter?/updateMieter",
 };
 
 export const mieterColumns: ColumnDef<Mieter>[] = [
