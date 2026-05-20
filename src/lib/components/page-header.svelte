@@ -3,7 +3,13 @@
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 
-	let { title }: { title: string } = $props();
+	let {
+		title,
+		parent,
+	}: {
+		title: string;
+		parent?: { label: string; href: string };
+	} = $props();
 </script>
 
 <header
@@ -14,6 +20,12 @@
 		<Separator orientation="vertical" class="me-2 data-[orientation=vertical]:h-4" />
 		<Breadcrumb.Root>
 			<Breadcrumb.List>
+				{#if parent}
+					<Breadcrumb.Item>
+						<Breadcrumb.Link href={parent.href}>{parent.label}</Breadcrumb.Link>
+					</Breadcrumb.Item>
+					<Breadcrumb.Separator />
+				{/if}
 				<Breadcrumb.Item>
 					<Breadcrumb.Page>{title}</Breadcrumb.Page>
 				</Breadcrumb.Item>
