@@ -8,6 +8,40 @@ import { db } from "$lib/server/db";
 import { auditLog } from "better-auth-audit-logs";
 import { sendEmail } from "$lib/server/email";
 
+import { organization as organizationTable } from "$lib/server/db/auth.schema";
+
+import { eq, like, or } from "drizzle-orm";
+
+async function findAvailableSlug(baseSlug: string): Promise<string> {
+  const existing = await db
+    .select({ slug: organizationTable.slug })
+    .from(organizationTable)
+    .where(
+      or(
+        eq(organizationTable.slug, baseSlug),
+        like(organizationTable.slug, `${baseSlug}%`),
+      ),
+    );
+  const taken = new Set(existing.map((o) => o.slug));
+  if (!taken.has(baseSlug)) return baseSlug;
+  let n = 1;
+  while (taken.has(`${baseSlug}${n}`)) n += 1;
+  return `${baseSlug}${n}`;
+}
+
+export function slugify(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .trim()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  return slug || "user";
+}
+
 export const auth = betterAuth({
   baseURL: env.ORIGIN,
   secret: env.BETTER_AUTH_SECRET,
@@ -21,6 +55,23 @@ export const auth = betterAuth({
         text: `Hi ${user.name ?? ""},\n\nReset your password by visiting:\n${url}\n\nIf you didn't request this, you can ignore this email.`,
         html: `<p>Hi ${user.name ?? ""},</p><p>Reset your password by visiting <a href="${url}">${url}</a>.</p><p>If you didn't request this, you can ignore this email.</p>`,
       });
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          const slug = await findAvailableSlug(slugify(user.name));
+          await auth.api.createOrganization({
+            body: {
+              name: user.name,
+              slug,
+              userId: user.id,
+              orgType: "company",
+            },
+          });
+        },
+      },
     },
   },
   plugins: [
