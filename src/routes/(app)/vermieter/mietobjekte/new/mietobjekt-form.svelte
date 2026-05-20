@@ -13,11 +13,23 @@ import { toast } from "svelte-sonner";
 
 let {
 	data,
+	compact = false,
+	submitLabel = "Mietobjekt anlegen",
+	submittingLabel = "Wird gespeichert…",
+	action,
+	onCancel,
+	onSaved,
 }: {
 	data: {
 		form: SuperValidated<Infer<FormSchema>>;
 		organizations: Array<{ id: string; name: string }>;
 	};
+	compact?: boolean;
+	submitLabel?: string;
+	submittingLabel?: string;
+	action?: string;
+	onCancel?: () => void;
+	onSaved?: () => void;
 } = $props();
 
 const form = superForm(data.form, {
@@ -25,6 +37,7 @@ const form = superForm(data.form, {
 	dataType: "json",
 	onUpdated: ({ form }) => {
 		if (!form.valid && form.message) toast.error(form.message);
+		else if (form.valid) onSaved?.();
 	},
 	onError: ({ result }) => {
 		toast.error(result.error.message ?? "Unerwarteter Fehler");
@@ -73,18 +86,25 @@ function scrollToStep(id: string) {
 }
 </script>
 
-<form method="POST" use:enhance class="flex flex-col gap-8 lg:flex-row lg:gap-12">
-	<aside class="lg:w-56 lg:shrink-0">
-		<div class="lg:sticky lg:top-6">
-			<div class="mb-4">
-				<h1 class="text-xl font-semibold">Neues Mietobjekt</h1>
-				<p class="text-muted-foreground mt-1 text-sm">
-					Erfassen Sie eine Wohnung, die zur Vermietung angeboten wird.
-				</p>
+<form
+	method="POST"
+	{action}
+	use:enhance
+	class={compact ? "flex flex-col gap-6" : "flex flex-col gap-8 lg:flex-row lg:gap-12"}
+>
+	{#if !compact}
+		<aside class="lg:w-56 lg:shrink-0">
+			<div class="lg:sticky lg:top-6">
+				<div class="mb-4">
+					<h1 class="text-xl font-semibold">Neues Mietobjekt</h1>
+					<p class="text-muted-foreground mt-1 text-sm">
+						Erfassen Sie eine Wohnung, die zur Vermietung angeboten wird.
+					</p>
+				</div>
+				<FormStepper {steps} {activeId} onSelect={scrollToStep} />
 			</div>
-			<FormStepper {steps} {activeId} onSelect={scrollToStep} />
-		</div>
-	</aside>
+		</aside>
+	{/if}
 
 	<div class="flex min-w-0 flex-1 flex-col gap-6">
 		{#if orgs.length > 1}
@@ -413,8 +433,18 @@ function scrollToStep(id: string) {
 		<div
 			class="bg-background sticky bottom-0 -mx-4 flex justify-end gap-2 border-t px-4 py-3 sm:-mx-6 sm:px-6"
 		>
+			{#if onCancel}
+				<button
+					type="button"
+					class="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+					disabled={$submitting}
+					onclick={onCancel}
+				>
+					Abbrechen
+				</button>
+			{/if}
 			<Form.Button type="submit" disabled={$submitting}>
-				{$submitting ? "Wird gespeichert…" : "Mietobjekt anlegen"}
+				{$submitting ? submittingLabel : submitLabel}
 			</Form.Button>
 		</div>
 	</div>
