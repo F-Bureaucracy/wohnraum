@@ -13,8 +13,8 @@ export type Mietobjekt = {
   zimmer: number;
   flaeche: number;
   kaltmiete: number;
-  lng: number;
-  lat: number;
+  lng?: number;
+  lat?: number;
   createdAt: Date;
 };
 

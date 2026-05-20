@@ -11,9 +11,16 @@
 		data,
 		basePath,
 	}: {
-		data: (Mietobjekt & { lng: number; lat: number })[];
+		data: Mietobjekt[];
 		basePath: string;
 	} = $props();
+
+	const geo = $derived(
+		data.filter(
+			(o): o is Mietobjekt & { lng: number; lat: number } =>
+				typeof o.lng === 'number' && typeof o.lat === 'number',
+		),
+	);
 
 	const columns = $derived(createMietobjekteColumns(basePath));
 	let activePopup: string | null = $state(null);
@@ -42,7 +49,7 @@
 			center={{ lng: 8.0473, lat: 52.2799 }}
 			zoom={12}
 		>
-			{#each data as obj (obj.id)}
+			{#each geo as obj (obj.id)}
 				<Marker lnglat={{ lng: obj.lng, lat: obj.lat }} onclick={() => (activePopup = obj.id)}>
 					{#if activePopup === obj.id}
 						<Popup offset={24} onclose={() => (activePopup = null)}>

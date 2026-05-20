@@ -6,7 +6,7 @@ import {
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
-import { organization } from "./auth.schema";
+import { organization, user } from "./auth.schema";
 
 export const task = pgTable("task", {
   id: text("id")
@@ -51,6 +51,24 @@ export const mietobjekt = pgTable("mietobjekt", {
 
   description: text("description"),
 
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const vermieterNote = pgTable("vermieter_note", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

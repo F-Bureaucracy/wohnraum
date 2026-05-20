@@ -1,75 +1,28 @@
 import type { ColumnDef } from "@tanstack/table-core";
 import { createRawSnippet } from "svelte";
-import { Checkbox } from "$lib/components/ui/checkbox/index.js";
-import {
-  renderComponent,
-  renderSnippet,
-} from "$lib/components/ui/data-table/index.js";
-import DataTableActions from "./actions.svelte";
+import { renderSnippet } from "$lib/components/ui/data-table/index.js";
 
 export type Vermieter = {
   id: string;
   name: string;
-  unternehmen: string;
-  email: string;
-  telefon: string;
+  slug: string;
   anzahlMietobjekte: number;
   createdAt: Date;
 };
 
-const actionProps = {
-  entitySingular: "Vermieter",
-  entityPlural: "Vermieter",
-  idFieldName: "vermieterId",
-  deleteAction: "/vermieter?/deleteVermieter",
-  editAction: "/vermieter?/updateVermieter",
-};
-
 export const vermieterColumns: ColumnDef<Vermieter>[] = [
   {
-    id: "select",
-    size: 40,
-    header: ({ table }) =>
-      renderComponent(Checkbox, {
-        checked: table.getIsAllPageRowsSelected(),
-        indeterminate:
-          table.getIsSomePageRowsSelected() &&
-          !table.getIsAllPageRowsSelected(),
-        onCheckedChange: (value) => table.toggleAllPageRowsSelected(!!value),
-        "aria-label": "Select all",
-      }),
-    cell: ({ row }) =>
-      renderComponent(Checkbox, {
-        checked: row.getIsSelected(),
-        onCheckedChange: (value) => row.toggleSelected(!!value),
-        "aria-label": "Select row",
-      }),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
     accessorKey: "name",
-    header: "Name",
-    size: 200,
-    cell: ({ row }) => truncCell(row.original.name),
-  },
-  {
-    accessorKey: "unternehmen",
     header: "Unternehmen",
-    size: 220,
-    cell: ({ row }) => truncCell(row.original.unternehmen),
+    size: 320,
+    cell: ({ row }) =>
+      linkCell(row.original.name, `/admin/vermieter/${row.original.id}`),
   },
   {
-    accessorKey: "email",
-    header: "E-Mail",
-    size: 220,
-    cell: ({ row }) => truncCell(row.original.email),
-  },
-  {
-    accessorKey: "telefon",
-    header: "Telefon",
-    size: 150,
-    cell: ({ row }) => truncCell(row.original.telefon),
+    accessorKey: "slug",
+    header: "Slug",
+    size: 200,
+    cell: ({ row }) => truncCell(row.original.slug),
   },
   {
     accessorKey: "anzahlMietobjekte",
@@ -84,14 +37,11 @@ export const vermieterColumns: ColumnDef<Vermieter>[] = [
     cell: ({ row }) => dateCell(row.original.createdAt),
   },
   {
-    id: "actions",
-    size: 56,
-    cell: ({ row }) =>
-      renderComponent(DataTableActions, {
-        ids: [row.original.id],
-        title: row.original.name,
-        ...actionProps,
-      }),
+    id: "open",
+    size: 80,
+    cell: ({ row }) => openCell(`/admin/vermieter/${row.original.id}`),
+    enableSorting: false,
+    enableHiding: false,
   },
 ];
 
@@ -115,6 +65,32 @@ function truncCell(value: string) {
       };
     }),
     { value: value ?? "" },
+  );
+}
+
+function linkCell(value: string, href: string) {
+  return renderSnippet(
+    createRawSnippet<[{ value: string; href: string }]>((getArgs) => {
+      const { value, href } = getArgs();
+      return {
+        render: () =>
+          `<a href="${escapeAttr(href)}" class="truncate hover:underline text-foreground font-medium block" title="${escapeAttr(value)}" data-sveltekit-preload-data>${escapeText(value)}</a>`,
+      };
+    }),
+    { value: value ?? "", href },
+  );
+}
+
+function openCell(href: string) {
+  return renderSnippet(
+    createRawSnippet<[{ href: string }]>((getArgs) => {
+      const { href } = getArgs();
+      return {
+        render: () =>
+          `<a href="${escapeAttr(href)}" class="inline-flex h-8 items-center rounded-md border px-3 text-xs font-medium hover:bg-muted" data-sveltekit-preload-data>Öffnen</a>`,
+      };
+    }),
+    { href },
   );
 }
 

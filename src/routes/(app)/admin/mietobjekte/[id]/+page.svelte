@@ -147,24 +147,28 @@
 				</Card.Content>
 			</Card.Root>
 
-			<Card.Root class="overflow-hidden pb-0">
-				<Card.Header>
-					<Card.Title>Lage</Card.Title>
-				</Card.Header>
-				<div class="h-64 w-full">
-					<MapLibre
-						class="h-full w-full"
-						style="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
-						center={{ lng: m.lng, lat: m.lat }}
-						zoom={14}
-					>
-						<Marker lnglat={{ lng: m.lng, lat: m.lat }} />
-					</MapLibre>
-				</div>
-				<Card.Footer class="text-muted-foreground py-3 text-xs">
-					Erstellt am {dateFmt.format(m.createdAt)}
-				</Card.Footer>
-			</Card.Root>
+			{#if typeof m.lng === 'number' && typeof m.lat === 'number'}
+				{@const lng = m.lng}
+				{@const lat = m.lat}
+				<Card.Root class="overflow-hidden pb-0">
+					<Card.Header>
+						<Card.Title>Lage</Card.Title>
+					</Card.Header>
+					<div class="h-64 w-full">
+						<MapLibre
+							class="h-full w-full"
+							style="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+							center={{ lng, lat }}
+							zoom={14}
+						>
+							<Marker lnglat={{ lng, lat }} />
+						</MapLibre>
+					</div>
+					<Card.Footer class="text-muted-foreground py-3 text-xs">
+						Erstellt am {dateFmt.format(m.createdAt)}
+					</Card.Footer>
+				</Card.Root>
+			{/if}
 		</div>
 	</div>
 </div>
