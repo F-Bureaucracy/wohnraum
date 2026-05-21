@@ -14,6 +14,11 @@ export type Mietobjekt = {
   zimmer: number;
   flaeche: number;
   kaltmiete: number;
+  maxOccupants: number;
+  petsAllowed: boolean;
+  barrierFree: boolean;
+  hasKitchen: boolean;
+  hasBalcony: boolean;
   lng?: number;
   lat?: number;
   bookmarked?: boolean;
@@ -89,12 +94,14 @@ export function createMietobjekteColumns(
       accessorKey: "zimmer",
       header: "Zimmer",
       size: 100,
+      filterFn: "inNumberRange",
       cell: ({ row }) => plainCell(numberFmt.format(row.original.zimmer)),
     },
     {
       accessorKey: "flaeche",
       header: "Fläche (m²)",
       size: 120,
+      filterFn: "inNumberRange",
       cell: ({ row }) =>
         plainCell(`${numberFmt.format(row.original.flaeche)} m²`),
     },
@@ -102,6 +109,7 @@ export function createMietobjekteColumns(
       accessorKey: "kaltmiete",
       header: "Kaltmiete",
       size: 140,
+      filterFn: "inNumberRange",
       cell: ({ row }) => plainCell(currencyFmt.format(row.original.kaltmiete)),
     },
     {
@@ -109,6 +117,36 @@ export function createMietobjekteColumns(
       header: "Erstellt am",
       size: 140,
       cell: ({ row }) => dateCell(row.original.createdAt),
+    },
+    {
+      accessorKey: "maxOccupants",
+      enableHiding: false,
+      filterFn: "inNumberRange",
+      meta: { filterOnly: true },
+    },
+    {
+      accessorKey: "petsAllowed",
+      enableHiding: false,
+      filterFn: "equals",
+      meta: { filterOnly: true },
+    },
+    {
+      accessorKey: "barrierFree",
+      enableHiding: false,
+      filterFn: "equals",
+      meta: { filterOnly: true },
+    },
+    {
+      accessorKey: "hasKitchen",
+      enableHiding: false,
+      filterFn: "equals",
+      meta: { filterOnly: true },
+    },
+    {
+      accessorKey: "hasBalcony",
+      enableHiding: false,
+      filterFn: "equals",
+      meta: { filterOnly: true },
     },
     {
       id: "actions",

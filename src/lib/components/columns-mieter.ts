@@ -14,6 +14,10 @@ export type Mieter = {
   email: string;
   telefon: string;
   mietobjekt: string;
+  householdSize: number;
+  maxColdRent?: number;
+  needsBarrierFree: boolean;
+  hasPets: boolean;
   bookmarked?: boolean;
   createdAt: Date;
 };
@@ -99,6 +103,30 @@ export function createMieterColumns(
       header: "Erstellt am",
       size: 140,
       cell: ({ row }) => dateCell(row.original.createdAt),
+    },
+    {
+      accessorKey: "householdSize",
+      enableHiding: false,
+      filterFn: "inNumberRange",
+      meta: { filterOnly: true },
+    },
+    {
+      accessorKey: "maxColdRent",
+      enableHiding: false,
+      filterFn: "inNumberRange",
+      meta: { filterOnly: true },
+    },
+    {
+      accessorKey: "needsBarrierFree",
+      enableHiding: false,
+      filterFn: "equals",
+      meta: { filterOnly: true },
+    },
+    {
+      accessorKey: "hasPets",
+      enableHiding: false,
+      filterFn: "equals",
+      meta: { filterOnly: true },
     },
     {
       id: "actions",

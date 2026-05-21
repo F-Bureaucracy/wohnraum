@@ -20,7 +20,10 @@ import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 import * as Table from '$lib/components/ui/table/index.js';
 import Button from '$ui/button/button.svelte';
 import Input from '$ui/input/input.svelte';
+import { Badge } from '$lib/components/ui/badge/index.js';
 import DataTableActions from './actions.svelte';
+import DataTableFilters from './data-table-filters.svelte';
+import { activeFilters, chipText, clearFilter, type TableFilter } from './table-filters';
 
 let tableWidth = $state(0);
 
@@ -36,6 +39,7 @@ type DataTableProps<TData, TValue> = {
 	editAction?: string;
 	createHref?: string;
 	createLabel?: string;
+	filters?: TableFilter[];
 };
 
 let {
@@ -50,12 +54,23 @@ let {
 	editAction,
 	createHref,
 	createLabel,
+	filters,
 }: DataTableProps<TData, TValue> = $props();
+
+function initialVisibility(cols: ColumnDef<TData, TValue>[]): VisibilityState {
+	const v: VisibilityState = {};
+	for (const c of cols) {
+		if (!c.meta?.filterOnly) continue;
+		const id = c.id ?? ('accessorKey' in c ? String(c.accessorKey) : undefined);
+		if (id) v[id] = false;
+	}
+	return v;
+}
 
 let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
 let sorting = $state<SortingState>([]);
 let columnFilters = $state<ColumnFiltersState>([]);
-let columnVisibility = $state<VisibilityState>({});
+let columnVisibility = $state<VisibilityState>(initialVisibility(columns));
 let rowSelection = $state<RowSelectionState>({});
 
 const table = createSvelteTable({
@@ -120,46 +135,73 @@ const table = createSvelteTable({
 		},
 	},
 });
+
+const activeChips = $derived(filters ? activeFilters(table, filters) : []);
 </script>
 
 <!-- Wrap everything in one container and measure its width -->
 <div class="relative w-full" bind:clientWidth={tableWidth}>
 	<!-- 1. Your existing Search / Columns top bar -->
-	<div class="flex items-center py-4">
-		<Input
-			placeholder={filterPlaceholder}
-			value={(table.getColumn(filterColumnId)?.getFilterValue() as string) ?? ''}
-			oninput={(e) => table.getColumn(filterColumnId)?.setFilterValue(e.currentTarget.value)}
-			onchange={(e) => {
-				table.getColumn(filterColumnId)?.setFilterValue(e.currentTarget.value);
-			}}
-			class="max-w-sm"
-		/>
-		{#if createHref}
-			<a href={createHref} class={[buttonVariants({ variant: 'default', size: 'sm' }), 'ms-auto']}>
-				<PlusIcon class="size-4" />
-				{createLabel}
-			</a>
-		{:else}
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger>
-					{#snippet child({ props })}
-						<Button {...props} variant="outline" class="ms-auto">
-							Columns <ChevronDownIcon class="ms-2 size-4" />
-						</Button>
-					{/snippet}
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content align="end">
-					{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column)}
-						<DropdownMenu.CheckboxItem
-							class="capitalize"
-							bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
+	<div class="flex flex-col gap-2 py-4">
+		<div class="flex items-center gap-2">
+			<Input
+				placeholder={filterPlaceholder}
+				value={(table.getColumn(filterColumnId)?.getFilterValue() as string) ?? ''}
+				oninput={(e) => table.getColumn(filterColumnId)?.setFilterValue(e.currentTarget.value)}
+				onchange={(e) => {
+					table.getColumn(filterColumnId)?.setFilterValue(e.currentTarget.value);
+				}}
+				class="max-w-sm"
+			/>
+			{#if filters && filters.length > 0}
+				<DataTableFilters {table} {filters} />
+			{/if}
+			{#if createHref}
+				<a
+					href={createHref}
+					class={[buttonVariants({ variant: 'default', size: 'sm' }), 'ms-auto']}
+				>
+					<PlusIcon class="size-4" />
+					{createLabel}
+				</a>
+			{:else}
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline" class="ms-auto">
+								Columns <ChevronDownIcon class="ms-2 size-4" />
+							</Button>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content align="end">
+						{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column)}
+							<DropdownMenu.CheckboxItem
+								class="capitalize"
+								bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
+							>
+								{column.id}
+							</DropdownMenu.CheckboxItem>
+						{/each}
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+			{/if}
+		</div>
+		{#if activeChips.length > 0}
+			<div class="flex flex-wrap items-center gap-2">
+				{#each activeChips as f (f.columnId)}
+					<Badge variant="secondary" class="gap-1 pr-1">
+						{chipText(table, f)}
+						<button
+							type="button"
+							class="rounded-full p-0.5 hover:bg-background/60"
+							aria-label={`${f.label} entfernen`}
+							onclick={() => clearFilter(table, f)}
 						>
-							{column.id}
-						</DropdownMenu.CheckboxItem>
-					{/each}
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+							<XIcon class="size-3" />
+						</button>
+					</Badge>
+				{/each}
+			</div>
 		{/if}
 	</div>
 

@@ -6,11 +6,43 @@
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import UsersIcon from '@lucide/svelte/icons/users';
 	import { createMieterColumns } from '$lib/components/columns-mieter';
+	import type { TableFilter } from '$lib/components/table-filters';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	const columns = createMieterColumns({ bookmarkAction: '/admin/mieter?/toggleBookmark' });
+
+	function ceilTo(value: number, step: number, fallback: number) {
+		const max = Math.max(value, fallback);
+		return Math.ceil(max / step) * step;
+	}
+
+	const filters = $derived<TableFilter[]>([
+		{
+			type: 'range',
+			columnId: 'maxColdRent',
+			label: 'Max. Kaltmiete (Budget)',
+			min: 0,
+			max: ceilTo(
+				Math.max(0, ...data.mieter.map((m) => m.maxColdRent ?? 0)),
+				50,
+				1000,
+			),
+			step: 50,
+			currency: true,
+		},
+		{
+			type: 'range',
+			columnId: 'householdSize',
+			label: 'Haushaltsgröße',
+			min: 1,
+			max: ceilTo(Math.max(1, ...data.mieter.map((m) => m.householdSize)), 1, 4),
+			step: 1,
+		},
+		{ type: 'boolean', columnId: 'needsBarrierFree', label: 'Barrierefrei benötigt' },
+		{ type: 'boolean', columnId: 'hasPets', label: 'Hat Haustiere' },
+	]);
 </script>
 
 <PageHeader title="Mieter" />
@@ -39,6 +71,7 @@
 		<DataTable
 			{columns}
 			data={data.mieter}
+			{filters}
 			filterColumnId="name"
 			filterPlaceholder="Mieter suchen..."
 			entitySingular="Mieter"

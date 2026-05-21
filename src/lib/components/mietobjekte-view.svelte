@@ -8,6 +8,7 @@
 		createMietobjekteColumns,
 		type Mietobjekt,
 	} from '$lib/components/columns-mietobjekte';
+	import type { TableFilter } from '$lib/components/table-filters';
 
 	let {
 		data,
@@ -15,12 +16,14 @@
 		createHref,
 		createLabel,
 		bookmarkAction,
+		filters,
 	}: {
 		data: Mietobjekt[];
 		basePath: string;
 		createHref?: string;
 		createLabel?: string;
 		bookmarkAction?: string;
+		filters?: TableFilter[];
 	} = $props();
 
 	const geo = $derived(
@@ -55,6 +58,7 @@
 		<DataTable
 			{columns}
 			{data}
+			{filters}
 			filterColumnId="adresse"
 			filterPlaceholder="Mietobjekt suchen..."
 			entitySingular="Mietobjekt"

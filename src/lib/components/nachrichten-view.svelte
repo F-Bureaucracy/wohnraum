@@ -27,8 +27,6 @@
 	import SendIcon from '@lucide/svelte/icons/send-horizontal';
 	import SearchIcon from '@lucide/svelte/icons/search';
 	import PaperclipIcon from '@lucide/svelte/icons/paperclip';
-	import PhoneIcon from '@lucide/svelte/icons/phone';
-	import VideoIcon from '@lucide/svelte/icons/video';
 	import MoreVerticalIcon from '@lucide/svelte/icons/more-vertical';
 
 	let { contacts, title = 'Nachrichten' }: { contacts: Contact[]; title?: string } = $props();
@@ -106,8 +104,6 @@
 				</div>
 			</div>
 			<div class="flex items-center gap-1">
-				<Button variant="ghost" size="icon"><PhoneIcon class="size-4" /></Button>
-				<Button variant="ghost" size="icon"><VideoIcon class="size-4" /></Button>
 				<Button variant="ghost" size="icon"><MoreVerticalIcon class="size-4" /></Button>
 			</div>
 		</header>

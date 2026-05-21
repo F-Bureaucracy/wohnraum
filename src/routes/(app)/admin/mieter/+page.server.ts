@@ -19,6 +19,10 @@ export const load: PageServerLoad = async ({ locals }) => {
       lastName: mieter.lastName,
       email: mieter.email,
       phone: mieter.phone,
+      householdSize: mieter.householdSize,
+      maxColdRentCents: mieter.maxColdRentCents,
+      needsBarrierFree: mieter.needsBarrierFree,
+      hasPets: mieter.hasPets,
       createdAt: mieter.createdAt,
     })
     .from(mieter)
@@ -34,6 +38,11 @@ export const load: PageServerLoad = async ({ locals }) => {
       email: r.email ?? "",
       telefon: r.phone ?? "",
       mietobjekt: "",
+      householdSize: r.householdSize,
+      maxColdRent:
+        r.maxColdRentCents != null ? r.maxColdRentCents / 100 : undefined,
+      needsBarrierFree: r.needsBarrierFree,
+      hasPets: r.hasPets,
       bookmarked: bookmarked.has(r.id),
       createdAt: r.createdAt,
     })),
