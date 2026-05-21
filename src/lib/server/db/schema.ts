@@ -70,6 +70,9 @@ export const mieter = pgTable("mieter", {
   organizationId: text("organization_id")
     .notNull()
     .references(() => organization.id, { onDelete: "cascade" }),
+  mietobjektId: text("mietobjekt_id").references(() => mietobjekt.id, {
+    onDelete: "set null",
+  }),
 
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),

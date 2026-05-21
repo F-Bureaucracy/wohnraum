@@ -10,4 +10,4 @@
 	title={data.mietobjekt.adresse}
 	parent={{ label: 'Mietobjekte', href: '/admin/mietobjekte' }}
 />
-<MietobjektDetail mietobjekt={data.mietobjekt} />
+<MietobjektDetail mietobjekt={data.mietobjekt} bewohner={data.bewohner} />

@@ -8,14 +8,16 @@
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import UsersIcon from '@lucide/svelte/icons/users';
 	import UserIcon from '@lucide/svelte/icons/user';
-	import type { MietobjektDetail } from '$lib/server/mietobjekt-mapping';
+	import type { MietobjektBewohner, MietobjektDetail } from '$lib/server/mietobjekt-mapping';
 
 	let {
 		mietobjekt: m,
 		showVermieter = true,
+		bewohner = []
 	}: {
 		mietobjekt: MietobjektDetail;
 		showVermieter?: boolean;
+		bewohner?: MietobjektBewohner[];
 	} = $props();
 
 	const currencyFmt = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
@@ -146,16 +148,48 @@
 						<Card.Title>Vermieter</Card.Title>
 					</Card.Header>
 					<Card.Content>
-						<div class="flex items-center gap-3">
+						<a
+							href="/admin/vermieter/{m.vermieterId}"
+							class="hover:bg-muted -m-2 flex items-center gap-3 rounded-md p-2 transition-colors"
+							data-sveltekit-preload-data
+						>
 							<div class="bg-muted flex size-9 items-center justify-center rounded-full">
 								<UserIcon class="size-4" />
 							</div>
-							<div class="text-sm font-medium">{m.vermieter ?? '—'}</div>
-						</div>
+							<div class="text-sm font-medium hover:underline">{m.vermieter ?? '—'}</div>
+						</a>
 					</Card.Content>
 					<Card.Footer class="text-muted-foreground text-xs">
 						Erstellt am {formatDate(m.createdAt)}
 					</Card.Footer>
+				</Card.Root>
+
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>Bewohner</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						{#if bewohner.length === 0}
+							<p class="text-muted-foreground text-sm">Noch keine Bewohner zugewiesen.</p>
+						{:else}
+							<ul class="flex flex-col gap-1">
+								{#each bewohner as person (person.id)}
+									<li>
+										<a
+											href="/admin/mieter/{person.id}"
+											class="hover:bg-muted -mx-2 flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors"
+											data-sveltekit-preload-data
+										>
+											<div class="bg-muted flex size-9 items-center justify-center rounded-full">
+												<UserIcon class="size-4" />
+											</div>
+											<div class="text-sm font-medium hover:underline">{person.name}</div>
+										</a>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					</Card.Content>
 				</Card.Root>
 			{:else}
 				<Card.Root>

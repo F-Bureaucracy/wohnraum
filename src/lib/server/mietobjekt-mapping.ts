@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { error } from "@sveltejs/kit";
 import { db } from "$lib/server/db";
-import { mietobjekt, organization } from "$lib/server/db/schema";
+import { mieter, mietobjekt, organization } from "$lib/server/db/schema";
 import type { Mietobjekt } from "$lib/components/columns-mietobjekte";
 
 type Row = typeof mietobjekt.$inferSelect;
@@ -44,6 +44,7 @@ export type MietobjektDetail = {
   petsAllowed: boolean;
   beschreibung: string | null;
   vermieter: string | null;
+  vermieterId: string;
   createdAt: Date;
 };
 
@@ -91,6 +92,28 @@ export async function loadMietobjektDetail(
     petsAllowed: m.petsAllowed,
     beschreibung: m.description,
     vermieter: row.organizationName,
+    vermieterId: m.organizationId,
     createdAt: m.createdAt,
   };
+}
+
+export type MietobjektBewohner = {
+  id: string;
+  name: string;
+};
+
+export async function loadMietobjektBewohner(
+  mietobjektId: string,
+): Promise<MietobjektBewohner[]> {
+  const rows = await db
+    .select({
+      id: mieter.id,
+      firstName: mieter.firstName,
+      lastName: mieter.lastName,
+    })
+    .from(mieter)
+    .where(eq(mieter.mietobjektId, mietobjektId))
+    .orderBy(mieter.lastName, mieter.firstName);
+
+  return rows.map((r) => ({ id: r.id, name: `${r.firstName} ${r.lastName}` }));
 }
