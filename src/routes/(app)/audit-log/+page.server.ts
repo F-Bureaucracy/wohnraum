@@ -1,5 +1,5 @@
 import { error, redirect } from "@sveltejs/kit";
-import { and, desc, eq, ilike } from "drizzle-orm";
+import { and, desc, eq, ilike, sql } from "drizzle-orm";
 import { auth } from "$lib/server/auth";
 import { db } from "$lib/server/db";
 import { appAuditLog, auditLog, member, user } from "$lib/server/db/schema";
@@ -7,6 +7,7 @@ import type { PageServerLoad } from "./$types";
 
 const severityValues = ["low", "medium", "high", "critical"] as const;
 const statusValues = ["success", "failed"] as const;
+const nullText = sql<string | null>`null`;
 
 function valueIn<const T extends readonly string[]>(
   values: T,
@@ -49,8 +50,8 @@ export const load: PageServerLoad = async (event) => {
         severity: auditLog.severity,
         ipAddress: auditLog.ipAddress,
         metadata: auditLog.metadata,
-        before: auditLog.metadata,
-        after: auditLog.metadata,
+        before: nullText,
+        after: nullText,
         createdAt: auditLog.createdAt,
         userName: user.name,
         userEmail: user.email,
@@ -70,7 +71,7 @@ export const load: PageServerLoad = async (event) => {
         action: appAuditLog.action,
         status: appAuditLog.status,
         severity: appAuditLog.severity,
-        ipAddress: appAuditLog.metadata,
+        ipAddress: nullText,
         metadata: appAuditLog.metadata,
         before: appAuditLog.before,
         after: appAuditLog.after,

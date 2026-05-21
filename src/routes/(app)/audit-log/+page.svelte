@@ -4,6 +4,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import * as Table from '$lib/components/ui/table/index.js';
+	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import type { PageData } from './$types';
@@ -14,6 +15,7 @@
 	let pageIndex = $state(0);
 	let pageSize = $state(25);
 	let pageSizeSelection = $derived(String(pageSize));
+	let expandedLogId = $state<string | null>(null);
 
 	const impactLabels: Record<string, string> = {
 		low: 'Niedrig',
@@ -43,13 +45,27 @@
 		return dateFmt.format(raw instanceof Date ? raw : new Date(raw));
 	}
 
-	function formatMetadata(metadata: string | null) {
-		if (!metadata) return '—';
+	function formatJson(value: string | null) {
+		if (!value) return '—';
 		try {
-			return JSON.stringify(JSON.parse(metadata));
+			return JSON.stringify(JSON.parse(value), null, 2);
 		} catch {
-			return metadata;
+			return value;
 		}
+	}
+
+	function hasDetails(log: PageData['logs'][number]) {
+		return Boolean(log.metadata || log.before || log.after);
+	}
+
+	function toggleExpanded(logId: string) {
+		expandedLogId = expandedLogId === logId ? null : logId;
+	}
+
+	function handleRowKeydown(event: KeyboardEvent, logId: string) {
+		if (event.key !== 'Enter' && event.key !== ' ') return;
+		event.preventDefault();
+		toggleExpanded(logId);
 	}
 
 	function submitFilters() {
@@ -74,6 +90,11 @@
 		if (pageIndex > lastPageIndex) pageIndex = lastPageIndex;
 	});
 
+	$effect(() => {
+		if (expandedLogId && !pagedLogs.some((log) => log.id === expandedLogId)) {
+			expandedLogId = null;
+		}
+	});
 </script>
 
 <PageHeader title="Änderungen" />
@@ -130,18 +151,34 @@
 		<Table.Root>
 			<Table.Header>
 				<Table.Row>
+					<Table.Head class="w-10"></Table.Head>
 					<Table.Head class="min-w-44">Zeitpunkt</Table.Head>
 					<Table.Head class="min-w-56">Benutzer</Table.Head>
 					<Table.Head class="min-w-36">Objekt</Table.Head>
 					<Table.Head class="min-w-52">Aktion</Table.Head>
 					<Table.Head>Status</Table.Head>
 					<Table.Head>Auswirkung</Table.Head>
-					<Table.Head class="min-w-80">Details</Table.Head>
 				</Table.Row>
 			</Table.Header>
 			<Table.Body>
 				{#each pagedLogs as log (log.id)}
-					<Table.Row>
+					<Table.Row
+						class="cursor-pointer"
+						role="button"
+						tabindex={0}
+						aria-expanded={expandedLogId === log.id}
+						onclick={() => toggleExpanded(log.id)}
+						onkeydown={(event) => handleRowKeydown(event, log.id)}
+					>
+						<Table.Cell>
+							<ChevronDownIcon
+								class={[
+									'size-4 text-muted-foreground transition-transform',
+									expandedLogId === log.id ? 'rotate-180' : '',
+								]}
+								aria-hidden="true"
+							/>
+						</Table.Cell>
 						<Table.Cell>{formatDate(log.createdAt)}</Table.Cell>
 						<Table.Cell>
 							<div class="truncate font-medium">{log.userName ?? log.userEmail ?? 'Unbekannt'}</div>
@@ -166,13 +203,37 @@
 								{impactLabels[log.severity] ?? log.severity}
 							</Badge>
 						</Table.Cell>
-						<Table.Cell
-							class="max-w-96 truncate font-mono text-xs"
-							title={formatMetadata(log.after ?? log.metadata)}
-						>
-							{formatMetadata(log.after ?? log.metadata)}
-						</Table.Cell>
 					</Table.Row>
+					{#if expandedLogId === log.id}
+						<Table.Row class="bg-muted/20 hover:bg-muted/20">
+							<Table.Cell colspan={7} class="whitespace-normal p-4">
+								{#if hasDetails(log)}
+									<div class="grid gap-3">
+										{#if log.metadata}
+											<section class="min-w-0 rounded-md border bg-background p-3">
+												<h3 class="mb-2 text-sm font-medium">Metadaten</h3>
+												<pre class="audit-detail-pre">{formatJson(log.metadata)}</pre>
+											</section>
+										{/if}
+										{#if log.before}
+											<section class="min-w-0 rounded-md border bg-background p-3">
+												<h3 class="mb-2 text-sm font-medium">Vorher</h3>
+												<pre class="audit-detail-pre">{formatJson(log.before)}</pre>
+											</section>
+										{/if}
+										{#if log.after}
+											<section class="min-w-0 rounded-md border bg-background p-3">
+												<h3 class="mb-2 text-sm font-medium">Nachher</h3>
+												<pre class="audit-detail-pre">{formatJson(log.after)}</pre>
+											</section>
+										{/if}
+									</div>
+								{:else}
+									<div class="text-sm text-muted-foreground">Keine Details vorhanden.</div>
+								{/if}
+							</Table.Cell>
+						</Table.Row>
+					{/if}
 				{:else}
 					<Table.Row>
 						<Table.Cell colspan={7} class="h-24 text-center text-muted-foreground">
@@ -255,5 +316,16 @@
 
 	.audit-table-scroll::-webkit-scrollbar-thumb:hover {
 		background-color: var(--color-muted-foreground);
+	}
+
+	.audit-detail-pre {
+		max-height: 24rem;
+		overflow: auto;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+		font-size: 0.75rem;
+		line-height: 1.5;
+		color: var(--color-muted-foreground);
 	}
 </style>
