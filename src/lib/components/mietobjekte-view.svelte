@@ -9,6 +9,7 @@
 		type Mietobjekt,
 	} from '$lib/components/columns-mietobjekte';
 	import type { TableFilter } from '$lib/components/table-filters';
+	import type { ColumnFiltersState } from '@tanstack/table-core';
 
 	let {
 		data,
@@ -17,6 +18,7 @@
 		createLabel,
 		bookmarkAction,
 		filters,
+		initialColumnFilters,
 	}: {
 		data: Mietobjekt[];
 		basePath: string;
@@ -24,6 +26,7 @@
 		createLabel?: string;
 		bookmarkAction?: string;
 		filters?: TableFilter[];
+		initialColumnFilters?: ColumnFiltersState;
 	} = $props();
 
 	const geo = $derived(
@@ -59,6 +62,7 @@
 			{columns}
 			{data}
 			{filters}
+			{initialColumnFilters}
 			filterColumnId="adresse"
 			filterPlaceholder="Mietobjekt suchen..."
 			entitySingular="Mietobjekt"

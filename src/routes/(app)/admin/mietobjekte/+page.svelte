@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import PageHeader from '$lib/components/page-header.svelte';
 	import MietobjekteView from '$lib/components/mietobjekte-view.svelte';
-	import type { TableFilter } from '$lib/components/table-filters';
+	import { parseFiltersFromParams, type TableFilter } from '$lib/components/table-filters';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -51,6 +52,8 @@
 		{ type: 'boolean', columnId: 'hasKitchen', label: 'Einbauküche' },
 		{ type: 'boolean', columnId: 'hasBalcony', label: 'Balkon' },
 	]);
+
+	const initialColumnFilters = $derived(parseFiltersFromParams(page.url.searchParams, filters));
 </script>
 
 <PageHeader title="Mietobjekte" />
@@ -59,4 +62,5 @@
 	basePath="/admin/mietobjekte"
 	bookmarkAction="/admin/mietobjekte?/toggleBookmark"
 	{filters}
+	{initialColumnFilters}
 />

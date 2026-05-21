@@ -7,6 +7,7 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
+	import HomeSearchIcon from '@lucide/svelte/icons/house';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -15,6 +16,18 @@
 
 	const m = $derived(data.mieter);
 	const fullName = $derived(`${m.firstName} ${m.lastName}`);
+
+	const sucheHref = $derived.by(() => {
+		const params = new URLSearchParams();
+		if (m.hasPets) params.set('petsAllowed', 'true');
+		if (m.needsBarrierFree) params.set('barrierFree', 'true');
+		if (m.maxColdRentCents != null) {
+			params.set('kaltmiete_max', String(Math.round(m.maxColdRentCents / 100)));
+		}
+		if (m.householdSize > 1) params.set('maxOccupants_min', String(m.householdSize));
+		const qs = params.toString();
+		return qs ? `/admin/mietobjekte?${qs}` : '/admin/mietobjekte';
+	});
 
 	const currencyFmt = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
 	const dateFmt = new Intl.DateTimeFormat('de-DE', {
@@ -63,6 +76,10 @@
 
 <div class="flex items-center justify-end gap-2 px-4 pb-2">
 	{#if !editing}
+		<Button href={sucheHref} size="sm">
+			<HomeSearchIcon class="size-4" />
+			Passende Wohnung suchen
+		</Button>
 		<BookmarkButton
 			entityType="mieter"
 			entityId={m.id}

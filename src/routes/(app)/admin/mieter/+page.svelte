@@ -5,8 +5,9 @@
 	import * as Empty from '$lib/components/ui/empty/index.js';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import UsersIcon from '@lucide/svelte/icons/users';
+	import { page } from '$app/state';
 	import { createMieterColumns } from '$lib/components/columns-mieter';
-	import type { TableFilter } from '$lib/components/table-filters';
+	import { parseFiltersFromParams, type TableFilter } from '$lib/components/table-filters';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -43,6 +44,8 @@
 		{ type: 'boolean', columnId: 'needsBarrierFree', label: 'Barrierefrei benötigt' },
 		{ type: 'boolean', columnId: 'hasPets', label: 'Hat Haustiere' },
 	]);
+
+	const initialColumnFilters = $derived(parseFiltersFromParams(page.url.searchParams, filters));
 </script>
 
 <PageHeader title="Mieter" />
@@ -72,6 +75,7 @@
 			{columns}
 			data={data.mieter}
 			{filters}
+			{initialColumnFilters}
 			filterColumnId="name"
 			filterPlaceholder="Mieter suchen..."
 			entitySingular="Mieter"

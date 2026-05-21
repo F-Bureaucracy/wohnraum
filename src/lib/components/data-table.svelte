@@ -21,9 +21,18 @@ import * as Table from '$lib/components/ui/table/index.js';
 import Button from '$ui/button/button.svelte';
 import Input from '$ui/input/input.svelte';
 import { Badge } from '$lib/components/ui/badge/index.js';
+import { page } from '$app/state';
+import { replaceState } from '$app/navigation';
 import DataTableActions from './actions.svelte';
 import DataTableFilters from './data-table-filters.svelte';
-import { activeFilters, chipText, clearFilter, type TableFilter } from './table-filters';
+import {
+	activeFilters,
+	applyFiltersToParams,
+	chipText,
+	clearFilter,
+	paramsEqual,
+	type TableFilter,
+} from './table-filters';
 
 let tableWidth = $state(0);
 
@@ -40,6 +49,7 @@ type DataTableProps<TData, TValue> = {
 	createHref?: string;
 	createLabel?: string;
 	filters?: TableFilter[];
+	initialColumnFilters?: ColumnFiltersState;
 };
 
 let {
@@ -55,6 +65,7 @@ let {
 	createHref,
 	createLabel,
 	filters,
+	initialColumnFilters,
 }: DataTableProps<TData, TValue> = $props();
 
 function initialVisibility(cols: ColumnDef<TData, TValue>[]): VisibilityState {
@@ -69,7 +80,7 @@ function initialVisibility(cols: ColumnDef<TData, TValue>[]): VisibilityState {
 
 let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
 let sorting = $state<SortingState>([]);
-let columnFilters = $state<ColumnFiltersState>([]);
+let columnFilters = $state<ColumnFiltersState>(initialColumnFilters ?? []);
 let columnVisibility = $state<VisibilityState>(initialVisibility(columns));
 let rowSelection = $state<RowSelectionState>({});
 
@@ -137,6 +148,14 @@ const table = createSvelteTable({
 });
 
 const activeChips = $derived(filters ? activeFilters(table, filters) : []);
+
+$effect(() => {
+	if (!filters || filters.length === 0) return;
+	const next = applyFiltersToParams(page.url.searchParams, columnFilters, filters);
+	if (paramsEqual(next, page.url.searchParams)) return;
+	const qs = next.toString();
+	replaceState(`${page.url.pathname}${qs ? `?${qs}` : ''}`, page.state);
+});
 </script>
 
 <!-- Wrap everything in one container and measure its width -->
