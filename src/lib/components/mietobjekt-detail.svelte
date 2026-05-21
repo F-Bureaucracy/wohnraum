@@ -13,10 +13,12 @@
 	let {
 		mietobjekt: m,
 		showVermieter = true,
+		showBewohner = true,
 		bewohner = []
 	}: {
 		mietobjekt: MietobjektDetail;
 		showVermieter?: boolean;
+		showBewohner?: boolean;
 		bewohner?: MietobjektBewohner[];
 	} = $props();
 
@@ -164,33 +166,35 @@
 					</Card.Footer>
 				</Card.Root>
 
-				<Card.Root>
-					<Card.Header>
-						<Card.Title>Bewohner</Card.Title>
-					</Card.Header>
-					<Card.Content>
-						{#if bewohner.length === 0}
-							<p class="text-muted-foreground text-sm">Noch keine Bewohner zugewiesen.</p>
-						{:else}
-							<ul class="flex flex-col gap-1">
-								{#each bewohner as person (person.id)}
-									<li>
-										<a
-											href="/admin/mieter/{person.id}"
-											class="hover:bg-muted -mx-2 flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors"
-											data-sveltekit-preload-data
-										>
-											<div class="bg-muted flex size-9 items-center justify-center rounded-full">
-												<UserIcon class="size-4" />
-											</div>
-											<div class="text-sm font-medium hover:underline">{person.name}</div>
-										</a>
-									</li>
-								{/each}
-							</ul>
-						{/if}
-					</Card.Content>
-				</Card.Root>
+				{#if showBewohner}
+					<Card.Root>
+						<Card.Header>
+							<Card.Title>Bewohner</Card.Title>
+						</Card.Header>
+						<Card.Content>
+							{#if bewohner.length === 0}
+								<p class="text-muted-foreground text-sm">Noch keine Bewohner zugewiesen.</p>
+							{:else}
+								<ul class="flex flex-col gap-1">
+									{#each bewohner as person (person.id)}
+										<li>
+											<a
+												href="/admin/mieter/{person.id}"
+												class="hover:bg-muted -mx-2 flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors"
+												data-sveltekit-preload-data
+											>
+												<div class="bg-muted flex size-9 items-center justify-center rounded-full">
+													<UserIcon class="size-4" />
+												</div>
+												<div class="text-sm font-medium hover:underline">{person.name}</div>
+											</a>
+										</li>
+									{/each}
+								</ul>
+							{/if}
+						</Card.Content>
+					</Card.Root>
+				{/if}
 			{:else}
 				<Card.Root>
 					<Card.Header>

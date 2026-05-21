@@ -23,7 +23,7 @@ Note: the README is a stale `sv`-template stub that mentions npm and SQLite/Turs
 - `bun run build` / `bun run preview`
 - `bun run check` — `svelte-kit sync` + `svelte-check` (TS/Svelte diagnostics)
 - `bun run lint` — ESLint
-- `bun run db:generate` / `bun run db:migrate` / `bun run db:push` / `bun run db:studio`
+- `bun run db:generate` / `bun run db:migrate` / `bun run db:push` / `bun run db:studio`: Do not use these commands. The user will push the changes themself.
 - `bun run auth:schema` — regenerate `src/lib/server/db/auth.schema.ts` from `src/lib/server/auth.ts` config
 
 No test runner is configured. Treat `bun run check` and `bun run lint` as the required verification before submitting changes.
