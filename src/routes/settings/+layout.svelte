@@ -2,12 +2,13 @@
 import { page } from '$app/state';
 import { ChevronLeftIcon } from '@lucide/svelte';
 import { MediaQuery } from 'svelte/reactivity';
-import { settingsNav } from './settings-nav';
+import { buildSettingsNav } from './settings-nav';
 import type { LayoutProps } from './$types';
 
-const { children }: LayoutProps = $props();
+const { children, data }: LayoutProps = $props();
 
 const isWide = new MediaQuery('(min-width: 1024px)');
+const settingsNav = $derived(buildSettingsNav({ canManageOrg: data.canManageOrg }));
 </script>
 
 {#if isWide.current}

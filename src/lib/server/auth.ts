@@ -67,6 +67,17 @@ export const auth = betterAuth({
       teams: {
         enabled: true,
       },
+      async sendInvitationEmail(data) {
+        const inviteLink = `${env.ORIGIN}/accept-invitation/${data.id}`;
+        const orgName = data.organization.name;
+        const inviterName = data.inviter.user.name ?? data.inviter.user.email;
+        await sendEmail({
+          to: data.email,
+          subject: `Einladung zu ${orgName}`,
+          text: `${inviterName} hat Sie zu ${orgName} eingeladen.\n\nEinladung annehmen:\n${inviteLink}\n\nWenn Sie diese Einladung nicht erwartet haben, können Sie diese E-Mail ignorieren.`,
+          html: `<p>${inviterName} hat Sie zu <strong>${orgName}</strong> eingeladen.</p><p><a href="${inviteLink}">Einladung annehmen</a></p><p>Wenn Sie diese Einladung nicht erwartet haben, können Sie diese E-Mail ignorieren.</p>`,
+        });
+      },
       schema: {
         organization: {
           additionalFields: {

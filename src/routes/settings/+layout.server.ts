@@ -1,9 +1,17 @@
 import { redirect } from "@sveltejs/kit";
+import { auth } from "$lib/server/auth";
 import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async (event) => {
   if (!event.locals.user) {
     throw redirect(302, "/login");
   }
-  return { user: event.locals.user };
+
+  const activeMember = await auth.api
+    .getActiveMember({ headers: event.request.headers })
+    .catch(() => null);
+  const role = activeMember?.role ?? "";
+  const canManageOrg = role === "owner" || role === "admin";
+
+  return { user: event.locals.user, canManageOrg };
 };

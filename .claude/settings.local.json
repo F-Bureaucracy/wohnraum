@@ -1,5 +1,5 @@
 {
   "permissions": {
-    "allow": ["WebFetch(domain:registry.npmjs.org)"]
+    "allow": ["WebFetch(domain:registry.npmjs.org)", "Bash(ctx7 docs *)"]
   }
 }

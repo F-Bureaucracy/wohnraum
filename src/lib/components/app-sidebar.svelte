@@ -1,31 +1,11 @@
 <script lang="ts" module>
-	import AudioWaveformIcon from "@lucide/svelte/icons/audio-waveform";
-	import CommandIcon from "@lucide/svelte/icons/command";
 	import UsersIcon from "@lucide/svelte/icons/users";
-	import faviconUrl from "$lib/assets/favicon.svg";
 	import KeyIcon from "@lucide/svelte/icons/key";
 	import Building2Icon from "@lucide/svelte/icons/building-2";
 	import FileTextIcon from "@lucide/svelte/icons/file-text";
 	import MessageSquareIcon from "@lucide/svelte/icons/message-square";
 
 	const data = {
-		teams: [
-			{
-				name: "Osnabrück",
-				logo: faviconUrl,
-				plan: "Enterprise",
-			},
-			{
-				name: "Acme Inc.",
-				logo: AudioWaveformIcon,
-				plan: "Startup",
-			},
-			{
-				name: "Evil Corp.",
-				logo: CommandIcon,
-				plan: "Free",
-			},
-		],
 		navMain: [
 			{
 				title: "Vermieter",
