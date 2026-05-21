@@ -8,6 +8,7 @@ import { Input } from "$lib/components/ui/input/index.js";
 import { Textarea } from "$lib/components/ui/textarea/index.js";
 import { Checkbox } from "$lib/components/ui/checkbox/index.js";
 import FormStepper, { type StepperStep } from "$lib/components/form-stepper.svelte";
+import { matchingRequirementFlags, mietobjektAmenityFlags } from "$lib/matching-flags";
 import { type FormSchema, mietobjektSchema } from "./schema.ts";
 import { toast } from "svelte-sonner";
 
@@ -246,22 +247,16 @@ function scrollToStep(id: string) {
 					</Form.Field>
 				</div>
 				<div class="flex flex-wrap gap-6 border-t pt-4">
-					<Form.Field {form} name="hasKitchen" class="flex flex-row items-center gap-2">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Checkbox {...props} bind:checked={$formData.hasKitchen} />
-								<Form.Label class="!mt-0 cursor-pointer">Einbauküche</Form.Label>
-							{/snippet}
-						</Form.Control>
-					</Form.Field>
-					<Form.Field {form} name="hasBalcony" class="flex flex-row items-center gap-2">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Checkbox {...props} bind:checked={$formData.hasBalcony} />
-								<Form.Label class="!mt-0 cursor-pointer">Balkon / Terrasse</Form.Label>
-							{/snippet}
-						</Form.Control>
-					</Form.Field>
+					{#each mietobjektAmenityFlags as flag (flag.mietobjektField)}
+						<Form.Field {form} name={flag.mietobjektField} class="flex flex-row items-center gap-2">
+							<Form.Control>
+								{#snippet children({ props })}
+									<Checkbox {...props} bind:checked={$formData[flag.mietobjektField]} />
+									<Form.Label class="!mt-0 cursor-pointer">{flag.mietobjektLabel}</Form.Label>
+								{/snippet}
+							</Form.Control>
+						</Form.Field>
+					{/each}
 				</div>
 			</div>
 		</section>
@@ -385,22 +380,16 @@ function scrollToStep(id: string) {
 					<Form.FieldErrors />
 				</Form.Field>
 				<div class="flex flex-wrap gap-6 border-t pt-4">
-					<Form.Field {form} name="barrierFree" class="flex flex-row items-center gap-2">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Checkbox {...props} bind:checked={$formData.barrierFree} />
-								<Form.Label class="!mt-0 cursor-pointer">Barrierefrei</Form.Label>
-							{/snippet}
-						</Form.Control>
-					</Form.Field>
-					<Form.Field {form} name="petsAllowed" class="flex flex-row items-center gap-2">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Checkbox {...props} bind:checked={$formData.petsAllowed} />
-								<Form.Label class="!mt-0 cursor-pointer">Haustiere erlaubt</Form.Label>
-							{/snippet}
-						</Form.Control>
-					</Form.Field>
+					{#each matchingRequirementFlags as flag (flag.mietobjektField)}
+						<Form.Field {form} name={flag.mietobjektField} class="flex flex-row items-center gap-2">
+							<Form.Control>
+								{#snippet children({ props })}
+									<Checkbox {...props} bind:checked={$formData[flag.mietobjektField]} />
+									<Form.Label class="!mt-0 cursor-pointer">{flag.mietobjektLabel}</Form.Label>
+								{/snippet}
+							</Form.Control>
+						</Form.Field>
+					{/each}
 				</div>
 			</div>
 		</section>

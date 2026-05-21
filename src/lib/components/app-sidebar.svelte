@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import UsersIcon from "@lucide/svelte/icons/users";
+	import HandshakeIcon from "@lucide/svelte/icons/handshake";
 	import KeyIcon from "@lucide/svelte/icons/key";
 	import Building2Icon from "@lucide/svelte/icons/building-2";
 	import FileTextIcon from "@lucide/svelte/icons/file-text";
@@ -10,7 +10,7 @@
 			{
 				title: "Vermieter",
 				url: "/admin/vermieter",
-				icon: UsersIcon,
+				icon: HandshakeIcon,
 			},
 			{
 				title: "Mieter",

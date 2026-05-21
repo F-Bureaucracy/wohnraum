@@ -1,6 +1,7 @@
 import { error, redirect } from "@sveltejs/kit";
 import { fail, message, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
+import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
 import { mieter } from "$lib/server/db/schema";
 import type { Actions, PageServerLoad } from "./$types";
@@ -30,21 +31,35 @@ export const actions: Actions = {
 
     const d = form.data;
     try {
-      await db.insert(mieter).values({
-        organizationId: activeOrg.id,
-        firstName: d.firstName,
-        lastName: d.lastName,
-        dateOfBirth: d.dateOfBirth || null,
-        gender: d.gender ?? null,
-        email: d.email || null,
-        phone: d.phone || null,
-        householdSize: d.householdSize,
-        maxColdRentCents:
-          typeof d.maxColdRent === "number" ? toCents(d.maxColdRent) : null,
-        needsBarrierFree: d.needsBarrierFree,
-        hasPets: d.hasPets,
-        availableFrom: d.availableFrom || null,
-        notes: d.notes || null,
+      const [created] = await db
+        .insert(mieter)
+        .values({
+          organizationId: activeOrg.id,
+          firstName: d.firstName,
+          lastName: d.lastName,
+          dateOfBirth: d.dateOfBirth || null,
+          gender: d.gender ?? null,
+          email: d.email || null,
+          phone: d.phone || null,
+          householdSize: d.householdSize,
+          maxColdRentCents:
+            typeof d.maxColdRent === "number" ? toCents(d.maxColdRent) : null,
+          needsBarrierFree: d.needsBarrierFree,
+          hasPets: d.hasPets,
+          availableFrom: d.availableFrom || null,
+          notes: d.notes || null,
+        })
+        .returning();
+
+      await writeAppAuditLog(event, {
+        action: "mieter:create",
+        entityType: "mieter",
+        entityId: created.id,
+        severity: "medium",
+        metadata: {
+          label: `${created.firstName} ${created.lastName}`,
+        },
+        after: created,
       });
     } catch (err) {
       console.error("[mieter/new] insert failed", err);

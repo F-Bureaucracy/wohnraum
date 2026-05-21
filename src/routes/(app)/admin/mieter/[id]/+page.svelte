@@ -6,6 +6,8 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { addMieterRequirementSearchParams, getMieterRequirementLabels } from '$lib/matching-flags';
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import HomeSearchIcon from '@lucide/svelte/icons/house';
 	import type { PageData } from './$types';
@@ -18,9 +20,8 @@
 	const fullName = $derived(`${m.firstName} ${m.lastName}`);
 
 	const sucheHref = $derived.by(() => {
-		const params = new URLSearchParams();
-		if (m.hasPets) params.set('petsAllowed', 'true');
-		if (m.needsBarrierFree) params.set('barrierFree', 'true');
+		const params = new SvelteURLSearchParams();
+		addMieterRequirementSearchParams(params, m);
 		if (m.maxColdRentCents != null) {
 			params.set('kaltmiete_max', String(Math.round(m.maxColdRentCents / 100)));
 		}
@@ -65,11 +66,7 @@
 		{ label: 'Verfügbar ab', value: formatDate(m.availableFrom) }
 	]);
 
-	const merkmale = $derived(
-		[m.needsBarrierFree ? 'Barrierefrei nötig' : null, m.hasPets ? 'Haustiere' : null].filter(
-			(v): v is string => v !== null
-		)
-	);
+	const merkmale = $derived(getMieterRequirementLabels(m));
 </script>
 
 <PageHeader title={fullName} parent={{ label: 'Mieter', href: '/admin/mieter' }} />

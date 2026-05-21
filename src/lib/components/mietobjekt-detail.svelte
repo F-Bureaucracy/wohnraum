@@ -8,6 +8,7 @@
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import UsersIcon from '@lucide/svelte/icons/users';
 	import UserIcon from '@lucide/svelte/icons/user';
+	import { getMietobjektFeatureLabels } from '$lib/matching-flags';
 	import type { MietobjektBewohner, MietobjektDetail } from '$lib/server/mietobjekt-mapping';
 
 	let {
@@ -62,14 +63,7 @@
 		{ label: 'Kaution', value: currencyFmt.format(m.kaution) },
 	]);
 
-	const merkmale = $derived(
-		[
-			m.hasKitchen ? 'Einbauküche' : null,
-			m.hasBalcony ? 'Balkon' : null,
-			m.barrierFree ? 'Barrierefrei' : null,
-			m.petsAllowed ? 'Haustiere erlaubt' : null,
-		].filter((v): v is string => v !== null),
-	);
+	const merkmale = $derived(getMietobjektFeatureLabels(m));
 </script>
 
 <div class="flex flex-1 flex-col gap-4 p-4 pt-0">

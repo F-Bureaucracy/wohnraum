@@ -2,10 +2,12 @@ import { error, fail, redirect } from "@sveltejs/kit";
 import { and, eq } from "drizzle-orm";
 import { message, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
+import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
 import { mietobjekt } from "$lib/server/db/schema";
 import { geocodeAddress } from "$lib/server/geocode";
 import { loadMietobjektDetail } from "$lib/server/mietobjekt-mapping";
+import { getMietobjektFeatureValues } from "$lib/matching-flags";
 import { mietobjektSchema } from "../new/schema";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -37,8 +39,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       livingArea: detail.flaeche,
       rooms: detail.zimmer,
       bedrooms: detail.bedrooms ?? undefined,
-      hasKitchen: detail.hasKitchen,
-      hasBalcony: detail.hasBalcony,
       coldRent: detail.kaltmiete,
       operatingCosts: detail.nebenkosten,
       heatingCosts: detail.heizkosten,
@@ -46,8 +46,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       availableFrom: toIsoDate(detail.availableFrom),
       minLeaseMonths: detail.minLeaseMonths ?? undefined,
       maxOccupants: detail.maxOccupants,
-      barrierFree: detail.barrierFree,
-      petsAllowed: detail.petsAllowed,
+      ...getMietobjektFeatureValues(detail),
       description: detail.beschreibung ?? "",
     },
     zod4(mietobjektSchema),
@@ -74,12 +73,7 @@ export const actions: Actions = {
     }
 
     const [existing] = await db
-      .select({
-        street: mietobjekt.street,
-        houseNumber: mietobjekt.houseNumber,
-        postalCode: mietobjekt.postalCode,
-        city: mietobjekt.city,
-      })
+      .select()
       .from(mietobjekt)
       .where(
         and(
@@ -125,8 +119,6 @@ export const actions: Actions = {
           livingArea: d.livingArea,
           rooms: d.rooms,
           bedrooms: d.bedrooms ?? null,
-          hasKitchen: d.hasKitchen,
-          hasBalcony: d.hasBalcony,
           coldRentCents: toCents(d.coldRent),
           operatingCostsCents: toCents(d.operatingCosts),
           heatingCostsCents: toCents(d.heatingCosts),
@@ -134,8 +126,7 @@ export const actions: Actions = {
           availableFrom: d.availableFrom,
           minLeaseMonths: d.minLeaseMonths ?? null,
           maxOccupants: d.maxOccupants,
-          barrierFree: d.barrierFree,
-          petsAllowed: d.petsAllowed,
+          ...getMietobjektFeatureValues(d),
           description: d.description || null,
         })
         .where(
@@ -144,11 +135,24 @@ export const actions: Actions = {
             eq(mietobjekt.organizationId, orgId),
           ),
         )
-        .returning({ id: mietobjekt.id });
+        .returning();
 
       if (result.length === 0) {
         return message(form, "Mietobjekt nicht gefunden", { status: 404 });
       }
+
+      await writeAppAuditLog(event, {
+        action: "mietobjekt:update",
+        entityType: "mietobjekt",
+        entityId: result[0].id,
+        organizationId: orgId,
+        severity: "medium",
+        metadata: {
+          label: `${result[0].street} ${result[0].houseNumber}, ${result[0].city}`,
+        },
+        before: existing,
+        after: result[0],
+      });
     } catch (err) {
       console.error("[mietobjekt/edit] update failed", err);
       return message(form, "Speichern fehlgeschlagen", { status: 500 });
@@ -169,9 +173,21 @@ export const actions: Actions = {
           eq(mietobjekt.organizationId, orgId),
         ),
       )
-      .returning({ id: mietobjekt.id });
+      .returning();
 
     if (result.length === 0) throw error(404, "Mietobjekt nicht gefunden");
+
+    await writeAppAuditLog(event, {
+      action: "mietobjekt:delete",
+      entityType: "mietobjekt",
+      entityId: result[0].id,
+      organizationId: orgId,
+      severity: "high",
+      metadata: {
+        label: `${result[0].street} ${result[0].houseNumber}, ${result[0].city}`,
+      },
+      before: result[0],
+    });
 
     throw redirect(303, "/vermieter/mietobjekte");
   },

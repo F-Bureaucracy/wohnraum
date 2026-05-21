@@ -7,6 +7,7 @@
 	import UsersIcon from '@lucide/svelte/icons/users';
 	import { page } from '$app/state';
 	import { createMieterColumns } from '$lib/components/columns-mieter';
+	import { getMieterRequirementFilters } from '$lib/matching-flags';
 	import { parseFiltersFromParams, type TableFilter } from '$lib/components/table-filters';
 	import type { PageData } from './$types';
 
@@ -41,8 +42,7 @@
 			max: ceilTo(Math.max(1, ...data.mieter.map((m) => m.householdSize)), 1, 4),
 			step: 1,
 		},
-		{ type: 'boolean', columnId: 'needsBarrierFree', label: 'Barrierefrei benötigt' },
-		{ type: 'boolean', columnId: 'hasPets', label: 'Hat Haustiere' },
+		...getMieterRequirementFilters(),
 	]);
 
 	const initialColumnFilters = $derived(parseFiltersFromParams(page.url.searchParams, filters));

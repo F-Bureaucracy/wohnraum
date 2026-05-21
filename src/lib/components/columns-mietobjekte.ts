@@ -5,6 +5,7 @@ import {
   renderComponent,
   renderSnippet,
 } from "$lib/components/ui/data-table/index.js";
+import { mietobjektFeatureFlags } from "$lib/matching-flags";
 import BookmarkButton from "./bookmark-button.svelte";
 import DataTableActions from "./actions.svelte";
 
@@ -124,30 +125,15 @@ export function createMietobjekteColumns(
       filterFn: "inNumberRange",
       meta: { filterOnly: true },
     },
-    {
-      accessorKey: "petsAllowed",
-      enableHiding: false,
-      filterFn: "equals",
-      meta: { filterOnly: true },
-    },
-    {
-      accessorKey: "barrierFree",
-      enableHiding: false,
-      filterFn: "equals",
-      meta: { filterOnly: true },
-    },
-    {
-      accessorKey: "hasKitchen",
-      enableHiding: false,
-      filterFn: "equals",
-      meta: { filterOnly: true },
-    },
-    {
-      accessorKey: "hasBalcony",
-      enableHiding: false,
-      filterFn: "equals",
-      meta: { filterOnly: true },
-    },
+    ...mietobjektFeatureFlags.map(
+      (flag) =>
+        ({
+          accessorKey: flag.mietobjektField,
+          enableHiding: false,
+          filterFn: "equals",
+          meta: { filterOnly: true },
+        }) satisfies ColumnDef<Mietobjekt>,
+    ),
     {
       id: "actions",
       size: 56,
@@ -159,19 +145,6 @@ export function createMietobjekteColumns(
         }),
     },
   ];
-}
-
-function truncCell(value: string) {
-  return renderSnippet(
-    createRawSnippet<[{ value: string }]>((getArgs) => {
-      const { value } = getArgs();
-      return {
-        render: () =>
-          `<div class="truncate" title="${escapeAttr(value)}">${escapeText(value)}</div>`,
-      };
-    }),
-    { value: value ?? "" },
-  );
 }
 
 function linkCell(value: string, href: string) {

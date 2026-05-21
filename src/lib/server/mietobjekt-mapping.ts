@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { error } from "@sveltejs/kit";
 import { db } from "$lib/server/db";
 import { mieter, mietobjekt, organization } from "$lib/server/db/schema";
+import { getMietobjektFeatureValues } from "$lib/matching-flags";
 import type { Mietobjekt } from "$lib/components/columns-mietobjekte";
 
 type Row = typeof mietobjekt.$inferSelect;
@@ -14,10 +15,7 @@ export function mapMietobjektRow(r: Row): Mietobjekt {
     flaeche: r.livingArea,
     kaltmiete: r.coldRentCents / 100,
     maxOccupants: r.maxOccupants,
-    petsAllowed: r.petsAllowed,
-    barrierFree: r.barrierFree,
-    hasKitchen: r.hasKitchen,
-    hasBalcony: r.hasBalcony,
+    ...getMietobjektFeatureValues(r),
     lat: r.latitude ?? undefined,
     lng: r.longitude ?? undefined,
     createdAt: r.createdAt,
@@ -84,8 +82,6 @@ export async function loadMietobjektDetail(
     zimmer: m.rooms,
     bedrooms: m.bedrooms,
     flaeche: m.livingArea,
-    hasKitchen: m.hasKitchen,
-    hasBalcony: m.hasBalcony,
     kaltmiete: m.coldRentCents / 100,
     nebenkosten: m.operatingCostsCents / 100,
     heizkosten: m.heatingCostsCents / 100,
@@ -93,8 +89,7 @@ export async function loadMietobjektDetail(
     availableFrom: m.availableFrom,
     minLeaseMonths: m.minLeaseMonths,
     maxOccupants: m.maxOccupants,
-    barrierFree: m.barrierFree,
-    petsAllowed: m.petsAllowed,
+    ...getMietobjektFeatureValues(m),
     beschreibung: m.description,
     vermieter: row.organizationName,
     vermieterId: m.organizationId,

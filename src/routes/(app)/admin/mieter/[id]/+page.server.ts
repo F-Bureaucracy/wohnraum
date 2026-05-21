@@ -2,6 +2,7 @@ import { error, redirect } from "@sveltejs/kit";
 import { and, eq } from "drizzle-orm";
 import { fail, message, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
+import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
 import { mieter } from "$lib/server/db/schema";
 import { getBookmarkedIds, toggleBookmarkAction } from "$lib/server/bookmarks";
@@ -74,6 +75,17 @@ export const actions: Actions = {
 
     const d = form.data;
     try {
+      const [before] = await db
+        .select()
+        .from(mieter)
+        .where(
+          and(
+            eq(mieter.id, event.params.id),
+            eq(mieter.organizationId, activeOrg.id),
+          ),
+        )
+        .limit(1);
+
       const result = await db
         .update(mieter)
         .set({
@@ -97,11 +109,23 @@ export const actions: Actions = {
             eq(mieter.organizationId, activeOrg.id),
           ),
         )
-        .returning({ id: mieter.id });
+        .returning();
 
       if (result.length === 0) {
         return message(form, "Mieter nicht gefunden", { status: 404 });
       }
+
+      await writeAppAuditLog(event, {
+        action: "mieter:update",
+        entityType: "mieter",
+        entityId: result[0].id,
+        severity: "medium",
+        metadata: {
+          label: `${result[0].firstName} ${result[0].lastName}`,
+        },
+        before,
+        after: result[0],
+      });
     } catch (err) {
       console.error("[mieter/edit] update failed", err);
       return message(form, "Speichern fehlgeschlagen", { status: 500 });
@@ -125,9 +149,20 @@ export const actions: Actions = {
           eq(mieter.organizationId, activeOrg.id),
         ),
       )
-      .returning({ id: mieter.id });
+      .returning();
 
     if (result.length === 0) throw error(404, "Mieter nicht gefunden");
+
+    await writeAppAuditLog(event, {
+      action: "mieter:delete",
+      entityType: "mieter",
+      entityId: result[0].id,
+      severity: "high",
+      metadata: {
+        label: `${result[0].firstName} ${result[0].lastName}`,
+      },
+      before: result[0],
+    });
 
     throw redirect(303, "/admin/mieter");
   },

@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import PageHeader from '$lib/components/page-header.svelte';
 	import MietobjekteView from '$lib/components/mietobjekte-view.svelte';
+	import { getMietobjektFeatureFilters } from '$lib/matching-flags';
 	import { parseFiltersFromParams, type TableFilter } from '$lib/components/table-filters';
 	import type { PageData } from './$types';
 
@@ -47,10 +48,7 @@
 			max: ceilTo(Math.max(0, ...data.mietobjekte.map((m) => m.maxOccupants)), 1, 5),
 			step: 1,
 		},
-		{ type: 'boolean', columnId: 'petsAllowed', label: 'Haustiere erlaubt' },
-		{ type: 'boolean', columnId: 'barrierFree', label: 'Barrierefrei' },
-		{ type: 'boolean', columnId: 'hasKitchen', label: 'Einbauküche' },
-		{ type: 'boolean', columnId: 'hasBalcony', label: 'Balkon' },
+		...getMietobjektFeatureFilters(),
 	]);
 
 	const initialColumnFilters = $derived(parseFiltersFromParams(page.url.searchParams, filters));

@@ -1,5 +1,6 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { error, fail, redirect } from "@sveltejs/kit";
+import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
 import {
   member,
@@ -63,26 +64,52 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 };
 
 export const actions: Actions = {
-  createNote: async ({ request, params, locals }) => {
+  createNote: async (event) => {
+    const { request, params, locals } = event;
     if (!locals.user) throw redirect(302, "/login");
     const data = await request.formData();
     const body = (data.get("body") ?? "").toString().trim();
     if (!body) return fail(400, { message: "Notiz darf nicht leer sein" });
 
-    await db.insert(vermieterNote).values({
+    const [created] = await db
+      .insert(vermieterNote)
+      .values({
+        organizationId: params.id,
+        authorId: locals.user.id,
+        body,
+      })
+      .returning();
+
+    await writeAppAuditLog(event, {
+      action: "vermieter-note:create",
+      entityType: "vermieter-note",
+      entityId: created.id,
       organizationId: params.id,
-      authorId: locals.user.id,
-      body,
+      severity: "low",
+      after: created,
     });
     return { success: true };
   },
 
-  updateNote: async ({ request, params, locals }) => {
+  updateNote: async (event) => {
+    const { request, params, locals } = event;
     if (!locals.user) throw redirect(302, "/login");
     const data = await request.formData();
     const noteId = (data.get("noteId") ?? "").toString();
     const body = (data.get("body") ?? "").toString().trim();
     if (!noteId || !body) return fail(400, { message: "Ungültige Eingabe" });
+
+    const [before] = await db
+      .select()
+      .from(vermieterNote)
+      .where(
+        and(
+          eq(vermieterNote.id, noteId),
+          eq(vermieterNote.organizationId, params.id),
+          eq(vermieterNote.authorId, locals.user.id),
+        ),
+      )
+      .limit(1);
 
     const result = await db
       .update(vermieterNote)
@@ -94,13 +121,25 @@ export const actions: Actions = {
           eq(vermieterNote.authorId, locals.user.id),
         ),
       )
-      .returning({ id: vermieterNote.id });
+      .returning();
 
     if (result.length === 0) return fail(403, { message: "Nicht erlaubt" });
+
+    await writeAppAuditLog(event, {
+      action: "vermieter-note:update",
+      entityType: "vermieter-note",
+      entityId: result[0].id,
+      organizationId: params.id,
+      severity: "low",
+      before,
+      after: result[0],
+    });
+
     return { success: true };
   },
 
-  deleteNote: async ({ request, params, locals }) => {
+  deleteNote: async (event) => {
+    const { request, params, locals } = event;
     if (!locals.user) throw redirect(302, "/login");
     const data = await request.formData();
     const noteId = (data.get("noteId") ?? "").toString();
@@ -115,9 +154,19 @@ export const actions: Actions = {
           eq(vermieterNote.authorId, locals.user.id),
         ),
       )
-      .returning({ id: vermieterNote.id });
+      .returning();
 
     if (result.length === 0) return fail(403, { message: "Nicht erlaubt" });
+
+    await writeAppAuditLog(event, {
+      action: "vermieter-note:delete",
+      entityType: "vermieter-note",
+      entityId: result[0].id,
+      organizationId: params.id,
+      severity: "medium",
+      before: result[0],
+    });
+
     return { success: true };
   },
 };

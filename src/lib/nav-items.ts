@@ -1,15 +1,16 @@
 import Building2Icon from "@lucide/svelte/icons/building-2";
 import FileTextIcon from "@lucide/svelte/icons/file-text";
+import HandshakeIcon from "@lucide/svelte/icons/handshake";
+import HistoryIcon from "@lucide/svelte/icons/history";
 import KeyIcon from "@lucide/svelte/icons/key";
 import MessageSquareIcon from "@lucide/svelte/icons/message-square";
-import UsersIcon from "@lucide/svelte/icons/users";
 import UsersRoundIcon from "@lucide/svelte/icons/users-round";
 import type { Component } from "svelte";
 
 export type NavItem = { title: string; url: string; icon: Component };
 
 export const caseworkerNav: NavItem[] = [
-  { title: "Vermieter", url: "/admin/vermieter", icon: UsersIcon },
+  { title: "Vermieter", url: "/admin/vermieter", icon: HandshakeIcon },
   { title: "Mieter", url: "/admin/mieter", icon: KeyIcon },
   { title: "Mietobjekte", url: "/admin/mietobjekte", icon: Building2Icon },
   { title: "Dokumente", url: "/admin/dokumente", icon: FileTextIcon },
@@ -30,3 +31,14 @@ export const companyNav: NavItem[] = [
   },
   { title: "Benutzer", url: "/users", icon: UsersRoundIcon },
 ];
+
+const auditLogNavItem: NavItem = {
+  title: "Änderungen",
+  url: "/audit-log",
+  icon: HistoryIcon,
+};
+
+export function navWithAuditLog(items: NavItem[], canViewAuditLog: boolean) {
+  if (!canViewAuditLog) return items;
+  return [...items, auditLogNavItem];
+}

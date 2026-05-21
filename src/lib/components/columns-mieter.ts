@@ -5,6 +5,7 @@ import {
   renderComponent,
   renderSnippet,
 } from "$lib/components/ui/data-table/index.js";
+import { matchingRequirementFlags } from "$lib/matching-flags";
 import BookmarkButton from "./bookmark-button.svelte";
 import DataTableActions from "./actions.svelte";
 
@@ -116,18 +117,15 @@ export function createMieterColumns(
       filterFn: "inNumberRange",
       meta: { filterOnly: true },
     },
-    {
-      accessorKey: "needsBarrierFree",
-      enableHiding: false,
-      filterFn: "equals",
-      meta: { filterOnly: true },
-    },
-    {
-      accessorKey: "hasPets",
-      enableHiding: false,
-      filterFn: "equals",
-      meta: { filterOnly: true },
-    },
+    ...matchingRequirementFlags.map(
+      (flag) =>
+        ({
+          accessorKey: flag.mieterField,
+          enableHiding: false,
+          filterFn: "equals",
+          meta: { filterOnly: true },
+        }) satisfies ColumnDef<Mieter>,
+    ),
     {
       id: "actions",
       size: 56,

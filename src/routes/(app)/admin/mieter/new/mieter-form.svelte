@@ -8,6 +8,7 @@ import { Input } from "$lib/components/ui/input/index.js";
 import { Textarea } from "$lib/components/ui/textarea/index.js";
 import { Checkbox } from "$lib/components/ui/checkbox/index.js";
 import FormStepper, { type StepperStep } from "$lib/components/form-stepper.svelte";
+import { matchingRequirementFlags } from "$lib/matching-flags";
 import { type FormSchema, mieterSchema } from "./schema.ts";
 import { toast } from "svelte-sonner";
 
@@ -238,22 +239,16 @@ function scrollToStep(id: string) {
 					</Form.Field>
 				</div>
 				<div class="flex flex-wrap gap-6 border-t pt-4">
-					<Form.Field {form} name="needsBarrierFree" class="flex flex-row items-center gap-2">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Checkbox {...props} bind:checked={$formData.needsBarrierFree} />
-								<Form.Label class="!mt-0 cursor-pointer">Barrierefrei benötigt</Form.Label>
-							{/snippet}
-						</Form.Control>
-					</Form.Field>
-					<Form.Field {form} name="hasPets" class="flex flex-row items-center gap-2">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Checkbox {...props} bind:checked={$formData.hasPets} />
-								<Form.Label class="!mt-0 cursor-pointer">Haustiere</Form.Label>
-							{/snippet}
-						</Form.Control>
-					</Form.Field>
+					{#each matchingRequirementFlags as flag (flag.mieterField)}
+						<Form.Field {form} name={flag.mieterField} class="flex flex-row items-center gap-2">
+							<Form.Control>
+								{#snippet children({ props })}
+									<Checkbox {...props} bind:checked={$formData[flag.mieterField]} />
+									<Form.Label class="!mt-0 cursor-pointer">{flag.mieterLabel}</Form.Label>
+								{/snippet}
+							</Form.Control>
+						</Form.Field>
+					{/each}
 				</div>
 			</div>
 		</section>

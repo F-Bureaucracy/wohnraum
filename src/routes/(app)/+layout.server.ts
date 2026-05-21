@@ -17,11 +17,16 @@ export const load: LayoutServerLoad = async (event) => {
   const createOrganizationForm = await superValidate(
     zod4(createOrganizationSchema),
   );
+  const activeMember = await auth.api
+    .getActiveMember({ headers: event.request.headers })
+    .catch(() => null);
+  const role = activeMember?.role ?? "";
 
   return {
     user: event.locals.user,
     activeOrganization: event.locals.activeOrganization ?? null,
     organizations: orgs.map((o) => ({ id: o.id, name: o.name, slug: o.slug })),
     createOrganizationForm,
+    canViewAuditLog: role === "owner" || role === "admin",
   };
 };

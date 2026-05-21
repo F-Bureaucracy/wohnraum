@@ -2,6 +2,7 @@ import {
   boolean,
   date,
   doublePrecision,
+  index,
   integer,
   pgTable,
   text,
@@ -130,6 +131,54 @@ export const bookmark = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (t) => [unique().on(t.userId, t.entityType, t.entityId)],
+);
+
+export const mietobjektReservation = pgTable(
+  "mietobjekt_reservation",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    mietobjektId: text("mietobjekt_id")
+      .notNull()
+      .references(() => mietobjekt.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [unique().on(t.mietobjektId)],
+);
+
+export const appAuditLog = pgTable(
+  "app_audit_log",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    actorUserId: text("actor_user_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    action: text("action").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id"),
+    status: text("status").default("success").notNull(),
+    severity: text("severity").default("low").notNull(),
+    metadata: text("metadata"),
+    before: text("before"),
+    after: text("after"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [
+    index("appAuditLog_organizationId_idx").on(t.organizationId),
+    index("appAuditLog_actorUserId_idx").on(t.actorUserId),
+    index("appAuditLog_action_idx").on(t.action),
+    index("appAuditLog_entity_idx").on(t.entityType, t.entityId),
+    index("appAuditLog_createdAt_idx").on(t.createdAt),
+  ],
 );
 
 export const conversation = pgTable("conversation", {
