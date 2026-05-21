@@ -3,6 +3,7 @@
 	import maplibregl from 'maplibre-gl';
 	import { MapLibre, Marker, Popup } from 'svelte-maplibre-gl';
 	import DataTable from '$lib/components/data-table.svelte';
+	import { buttonVariants } from '$lib/components/ui/button/index.js';
 	import {
 		createMietobjekteColumns,
 		type Mietobjekt,
@@ -11,9 +12,13 @@
 	let {
 		data,
 		basePath,
+		createHref,
+		createLabel,
 	}: {
 		data: Mietobjekt[];
 		basePath: string;
+		createHref?: string;
+		createLabel?: string;
 	} = $props();
 
 	const geo = $derived(
@@ -55,6 +60,8 @@
 			idFieldName="mietobjektId"
 			deleteAction={`${basePath}?/deleteMietobjekt`}
 			editAction={`${basePath}?/updateMietobjekt`}
+			{createHref}
+			{createLabel}
 		/>
 	</div>
 	<div class="sticky top-4 h-[calc(100vh-6rem)] overflow-hidden rounded-md border">
@@ -69,7 +76,7 @@
 				<Marker lnglat={{ lng: obj.lng, lat: obj.lat }} onclick={() => (activePopup = obj.id)}>
 					{#if activePopup === obj.id}
 						<Popup offset={24} onclose={() => (activePopup = null)}>
-							<div class="space-y-1 text-sm">
+							<div class="space-y-2 text-sm">
 								<div class="font-medium">{obj.adresse}</div>
 								<div class="text-muted-foreground">
 									{obj.zimmer} Zi · {obj.flaeche} m² · {obj.kaltmiete.toLocaleString('de-DE', {
@@ -77,6 +84,13 @@
 										currency: 'EUR',
 									})}
 								</div>
+								<a
+									href={`${basePath}/${obj.id}`}
+									class={buttonVariants({ variant: 'outline', size: 'sm' })}
+									data-sveltekit-preload-data
+								>
+									Details
+								</a>
 							</div>
 						</Popup>
 					{/if}

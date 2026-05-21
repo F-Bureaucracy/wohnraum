@@ -2,6 +2,7 @@
 	import PageHeader from '$lib/components/page-header.svelte';
 	import MietobjektDetail from '$lib/components/mietobjekt-detail.svelte';
 	import MietobjektForm from '../new/mietobjekt-form.svelte';
+	import DeleteButton from '$lib/components/delete-button.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import type { PageData } from './$types';
@@ -16,12 +17,19 @@
 	parent={{ label: 'Mietobjekte', href: '/vermieter/mietobjekte' }}
 />
 
-<div class="flex items-center justify-end px-4 pb-2">
+<div class="flex items-center justify-end gap-2 px-4 pb-2">
 	{#if !editing}
 		<Button size="sm" variant="outline" onclick={() => (editing = true)}>
 			<PencilIcon class="size-4" />
 			Bearbeiten
 		</Button>
+		<DeleteButton
+			action="?/deleteMietobjekt"
+			id={data.mietobjekt.id}
+			idFieldName="mietobjektId"
+			entityLabel="das Mietobjekt"
+			name={data.mietobjekt.adresse}
+		/>
 	{/if}
 </div>
 

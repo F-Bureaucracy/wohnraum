@@ -1,7 +1,7 @@
 <script lang="ts">
 	import DataTable from '$lib/components/data-table.svelte';
 	import PageHeader from '$lib/components/page-header.svelte';
-	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Empty from '$lib/components/ui/empty/index.js';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import UsersIcon from '@lucide/svelte/icons/users';
@@ -33,12 +33,6 @@
 		</Empty.Root>
 	</div>
 {:else}
-	<div class="flex items-center justify-end px-4 pb-2">
-		<a href="/admin/mieter/new" class={buttonVariants({ variant: 'default', size: 'sm' })}>
-			<PlusIcon class="size-4" />
-			Neuer Mieter
-		</a>
-	</div>
 	<div class="flex flex-1 flex-col gap-4 p-4 pt-0">
 		<DataTable
 			columns={mieterColumns}
@@ -50,6 +44,8 @@
 			idFieldName="mieterId"
 			deleteAction="/admin/mieter?/deleteMieter"
 			editAction="/admin/mieter?/updateMieter"
+			createHref="/admin/mieter/new"
+			createLabel="Neuer Mieter"
 		/>
 	</div>
 {/if}

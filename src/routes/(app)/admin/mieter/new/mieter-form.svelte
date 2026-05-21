@@ -13,10 +13,24 @@ import { toast } from "svelte-sonner";
 
 let {
 	data,
+	title = "Neuer Mieter",
+	description = "Erfassen Sie eine Person, die eine Wohnung sucht.",
+	submitLabel = "Mieter anlegen",
+	submittingLabel = "Wird gespeichert…",
+	action,
+	onCancel,
+	onSaved,
 }: {
 	data: {
 		form: SuperValidated<Infer<FormSchema>>;
 	};
+	title?: string;
+	description?: string;
+	submitLabel?: string;
+	submittingLabel?: string;
+	action?: string;
+	onCancel?: () => void;
+	onSaved?: () => void;
 } = $props();
 
 const form = superForm(data.form, {
@@ -24,6 +38,7 @@ const form = superForm(data.form, {
 	dataType: "json",
 	onUpdated: ({ form }) => {
 		if (!form.valid && form.message) toast.error(form.message);
+		else if (form.valid) onSaved?.();
 	},
 	onError: ({ result }) => {
 		toast.error(result.error.message ?? "Unerwarteter Fehler");
@@ -76,14 +91,12 @@ function scrollToStep(id: string) {
 }
 </script>
 
-<form method="POST" use:enhance class="flex flex-col gap-8 lg:flex-row lg:gap-12">
+<form method="POST" {action} use:enhance class="flex flex-col gap-8 lg:flex-row lg:gap-12">
 	<aside class="lg:w-56 lg:shrink-0">
 		<div class="lg:sticky lg:top-6">
 			<div class="mb-4">
-				<h1 class="text-xl font-semibold">Neuer Mieter</h1>
-				<p class="text-muted-foreground mt-1 text-sm">
-					Erfassen Sie eine Person, die eine Wohnung sucht.
-				</p>
+				<h1 class="text-xl font-semibold">{title}</h1>
+				<p class="text-muted-foreground mt-1 text-sm">{description}</p>
 			</div>
 			<FormStepper {steps} {activeId} onSelect={scrollToStep} />
 		</div>
@@ -289,8 +302,18 @@ function scrollToStep(id: string) {
 		<div
 			class="bg-background sticky bottom-0 -mx-4 flex justify-end gap-2 border-t px-4 py-3 sm:-mx-6 sm:px-6"
 		>
+			{#if onCancel}
+				<button
+					type="button"
+					class="hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium"
+					disabled={$submitting}
+					onclick={onCancel}
+				>
+					Abbrechen
+				</button>
+			{/if}
 			<Form.Button type="submit" disabled={$submitting}>
-				{$submitting ? "Wird gespeichert…" : "Mieter anlegen"}
+				{$submitting ? submittingLabel : submitLabel}
 			</Form.Button>
 		</div>
 	</div>

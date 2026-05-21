@@ -1,4 +1,4 @@
-import { error, fail } from "@sveltejs/kit";
+import { error, fail, redirect } from "@sveltejs/kit";
 import { and, eq } from "drizzle-orm";
 import { message, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
@@ -155,5 +155,24 @@ export const actions: Actions = {
     }
 
     return { form };
+  },
+
+  deleteMietobjekt: async (event) => {
+    const orgId = event.locals.activeOrganization?.id;
+    if (!orgId) throw error(403, "Keine aktive Organisation");
+
+    const result = await db
+      .delete(mietobjekt)
+      .where(
+        and(
+          eq(mietobjekt.id, event.params.id),
+          eq(mietobjekt.organizationId, orgId),
+        ),
+      )
+      .returning({ id: mietobjekt.id });
+
+    if (result.length === 0) throw error(404, "Mietobjekt nicht gefunden");
+
+    throw redirect(303, "/vermieter/mietobjekte");
   },
 };

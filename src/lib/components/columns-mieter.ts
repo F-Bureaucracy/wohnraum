@@ -50,7 +50,8 @@ export const mieterColumns: ColumnDef<Mieter>[] = [
     accessorKey: "name",
     header: "Name",
     size: 200,
-    cell: ({ row }) => truncCell(row.original.name),
+    cell: ({ row }) =>
+      linkCell(row.original.name, `/admin/mieter/${row.original.id}`),
   },
   {
     accessorKey: "email",
@@ -87,6 +88,19 @@ export const mieterColumns: ColumnDef<Mieter>[] = [
       }),
   },
 ];
+
+function linkCell(value: string, href: string) {
+  return renderSnippet(
+    createRawSnippet<[{ value: string; href: string }]>((getArgs) => {
+      const { value, href } = getArgs();
+      return {
+        render: () =>
+          `<a href="${escapeAttr(href)}" class="truncate hover:underline text-foreground font-medium block" title="${escapeAttr(value)}" data-sveltekit-preload-data>${escapeText(value)}</a>`,
+      };
+    }),
+    { value: value ?? "", href },
+  );
+}
 
 function truncCell(value: string) {
   return renderSnippet(

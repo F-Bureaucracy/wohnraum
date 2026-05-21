@@ -12,7 +12,9 @@ import {
 	type SortingState,
 	type VisibilityState,
 } from '@tanstack/table-core';
+import PlusIcon from '@lucide/svelte/icons/plus';
 import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
+import { buttonVariants } from '$lib/components/ui/button/index.js';
 import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
 import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 import * as Table from '$lib/components/ui/table/index.js';
@@ -32,6 +34,8 @@ type DataTableProps<TData, TValue> = {
 	idFieldName?: string;
 	deleteAction?: string;
 	editAction?: string;
+	createHref?: string;
+	createLabel?: string;
 };
 
 let {
@@ -44,6 +48,8 @@ let {
 	idFieldName,
 	deleteAction,
 	editAction,
+	createHref,
+	createLabel,
 }: DataTableProps<TData, TValue> = $props();
 
 let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -129,25 +135,32 @@ const table = createSvelteTable({
 			}}
 			class="max-w-sm"
 		/>
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger>
-				{#snippet child({ props })}
-					<Button {...props} variant="outline" class="ms-auto">
-						Columns <ChevronDownIcon class="ms-2 size-4" />
-					</Button>
-				{/snippet}
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Content align="end">
-				{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column)}
-					<DropdownMenu.CheckboxItem
-						class="capitalize"
-						bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
-					>
-						{column.id}
-					</DropdownMenu.CheckboxItem>
-				{/each}
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
+		{#if createHref}
+			<a href={createHref} class={[buttonVariants({ variant: 'default', size: 'sm' }), 'ms-auto']}>
+				<PlusIcon class="size-4" />
+				{createLabel}
+			</a>
+		{:else}
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					{#snippet child({ props })}
+						<Button {...props} variant="outline" class="ms-auto">
+							Columns <ChevronDownIcon class="ms-2 size-4" />
+						</Button>
+					{/snippet}
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content align="end">
+					{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column)}
+						<DropdownMenu.CheckboxItem
+							class="capitalize"
+							bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
+						>
+							{column.id}
+						</DropdownMenu.CheckboxItem>
+					{/each}
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
+		{/if}
 	</div>
 
 	<!-- 2. Your existing Table -->
