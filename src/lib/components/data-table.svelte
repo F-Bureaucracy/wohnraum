@@ -13,7 +13,6 @@ import {
 	type VisibilityState,
 } from '@tanstack/table-core';
 import PlusIcon from '@lucide/svelte/icons/plus';
-import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
 import { buttonVariants } from '$lib/components/ui/button/index.js';
 import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
 import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -23,6 +22,7 @@ import Input from '$ui/input/input.svelte';
 import { Badge } from '$lib/components/ui/badge/index.js';
 import { page } from '$app/state';
 import { replaceState } from '$app/navigation';
+import { resolve } from '$app/paths';
 import DataTableActions from './actions.svelte';
 import DataTableFilters from './data-table-filters.svelte';
 import {
@@ -50,6 +50,7 @@ type DataTableProps<TData, TValue> = {
 	createLabel?: string;
 	filters?: TableFilter[];
 	initialColumnFilters?: ColumnFiltersState;
+	onFilteredDataChange?: (data: TData[]) => void;
 };
 
 let {
@@ -66,6 +67,7 @@ let {
 	createLabel,
 	filters,
 	initialColumnFilters,
+	onFilteredDataChange,
 }: DataTableProps<TData, TValue> = $props();
 
 function initialVisibility(cols: ColumnDef<TData, TValue>[]): VisibilityState {
@@ -76,6 +78,10 @@ function initialVisibility(cols: ColumnDef<TData, TValue>[]): VisibilityState {
 		if (id) v[id] = false;
 	}
 	return v;
+}
+
+function notifyFilteredDataChange(_columnFilters: ColumnFiltersState, _data: TData[]): void {
+	onFilteredDataChange?.(table.getFilteredRowModel().rows.map((row) => row.original));
 }
 
 let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -150,11 +156,15 @@ const table = createSvelteTable({
 const activeChips = $derived(filters ? activeFilters(table, filters) : []);
 
 $effect(() => {
+	notifyFilteredDataChange(columnFilters, data);
+});
+
+$effect(() => {
 	if (!filters || filters.length === 0) return;
 	const next = applyFiltersToParams(page.url.searchParams, columnFilters, filters);
 	if (paramsEqual(next, page.url.searchParams)) return;
 	const qs = next.toString();
-	replaceState(`${page.url.pathname}${qs ? `?${qs}` : ''}`, page.state);
+	replaceState(resolve(`${page.url.pathname}${qs ? `?${qs}` : ''}`), page.state);
 });
 </script>
 
@@ -177,7 +187,7 @@ $effect(() => {
 			{/if}
 			{#if createHref}
 				<a
-					href={createHref}
+					href={resolve(createHref)}
 					class={[buttonVariants({ variant: 'default', size: 'sm' }), 'ms-auto']}
 				>
 					<PlusIcon class="size-4" />

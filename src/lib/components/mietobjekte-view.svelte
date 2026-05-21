@@ -2,6 +2,7 @@
 	import 'maplibre-gl/dist/maplibre-gl.css';
 	import maplibregl from 'maplibre-gl';
 	import { MapLibre, Marker, Popup } from 'svelte-maplibre-gl';
+	import { resolve } from '$app/paths';
 	import DataTable from '$lib/components/data-table.svelte';
 	import { buttonVariants } from '$lib/components/ui/button/index.js';
 	import {
@@ -29,8 +30,11 @@
 		initialColumnFilters?: ColumnFiltersState;
 	} = $props();
 
+	let tableFilteredData = $state<Mietobjekt[]>();
+	const visibleData = $derived(tableFilteredData ?? data);
+
 	const geo = $derived(
-		data.filter(
+		visibleData.filter(
 			(o): o is Mietobjekt & { lng: number; lat: number } =>
 				typeof o.lng === 'number' && typeof o.lat === 'number',
 		),
@@ -52,6 +56,11 @@
 		);
 		map.fitBounds(bounds, { padding: 48, animate: false });
 	});
+
+	$effect(() => {
+		if (!activePopup || visibleData.some((obj) => obj.id === activePopup)) return;
+		activePopup = null;
+	});
 </script>
 
 <div
@@ -72,6 +81,7 @@
 			editAction={`${basePath}?/updateMietobjekt`}
 			{createHref}
 			{createLabel}
+			onFilteredDataChange={(rows) => (tableFilteredData = rows)}
 		/>
 	</div>
 	<div class="sticky top-4 h-[calc(100vh-6rem)] overflow-hidden rounded-md border">
@@ -95,7 +105,7 @@
 									})}
 								</div>
 								<a
-									href={`${basePath}/${obj.id}`}
+									href={resolve(`${basePath}/${obj.id}`)}
 									class={buttonVariants({ variant: 'outline', size: 'sm' })}
 									data-sveltekit-preload-data
 								>
