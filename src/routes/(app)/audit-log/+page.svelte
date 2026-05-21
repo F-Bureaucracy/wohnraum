@@ -4,11 +4,16 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import * as Table from '$lib/components/ui/table/index.js';
+	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
+	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 	let filterForm: HTMLFormElement;
 	let actionFilterTimeout: ReturnType<typeof setTimeout> | undefined;
+	let pageIndex = $state(0);
+	let pageSize = $state(25);
+	let pageSizeSelection = $derived(String(pageSize));
 
 	const impactLabels: Record<string, string> = {
 		low: 'Niedrig',
@@ -55,6 +60,20 @@
 		if (actionFilterTimeout) clearTimeout(actionFilterTimeout);
 		actionFilterTimeout = setTimeout(submitFilters, 300);
 	}
+
+	const pageCount = $derived(Math.ceil(data.logs.length / pageSize));
+	const pageNumber = $derived(pageCount === 0 ? 0 : pageIndex + 1);
+	const pageStart = $derived(data.logs.length === 0 ? 0 : pageIndex * pageSize + 1);
+	const pageEnd = $derived(Math.min(data.logs.length, (pageIndex + 1) * pageSize));
+	const pagedLogs = $derived(data.logs.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize));
+	const canPreviousPage = $derived(pageIndex > 0);
+	const canNextPage = $derived(pageIndex < pageCount - 1);
+
+	$effect(() => {
+		const lastPageIndex = Math.max(pageCount - 1, 0);
+		if (pageIndex > lastPageIndex) pageIndex = lastPageIndex;
+	});
+
 </script>
 
 <PageHeader title="Änderungen" />
@@ -121,7 +140,7 @@
 				</Table.Row>
 			</Table.Header>
 			<Table.Body>
-				{#each data.logs as log (log.id)}
+				{#each pagedLogs as log (log.id)}
 					<Table.Row>
 						<Table.Cell>{formatDate(log.createdAt)}</Table.Cell>
 						<Table.Cell>
@@ -163,6 +182,55 @@
 				{/each}
 			</Table.Body>
 		</Table.Root>
+	</div>
+
+	<div class="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+		<div>
+			{#if data.logs.length === 0}
+				Keine Einträge
+			{:else}
+				{pageStart}-{pageEnd} von {data.logs.length} Einträgen
+			{/if}
+		</div>
+		<div class="flex flex-wrap items-center gap-2">
+			<label class="flex items-center gap-2">
+				<span>Zeilen</span>
+				<select
+					bind:value={pageSizeSelection}
+					onchange={() => {
+						pageSize = Number(pageSizeSelection);
+						pageIndex = 0;
+					}}
+					class="border-input bg-background h-8 rounded-md border px-2 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+				>
+					<option value="10">10</option>
+					<option value="25">25</option>
+					<option value="50">50</option>
+					<option value="100">100</option>
+				</select>
+			</label>
+			<div class="min-w-20 text-center">
+				Seite {pageNumber} von {Math.max(pageCount, 1)}
+			</div>
+			<Button
+				variant="outline"
+				size="icon-sm"
+				disabled={!canPreviousPage}
+				aria-label="Vorherige Seite"
+				onclick={() => (pageIndex -= 1)}
+			>
+				<ChevronLeftIcon class="size-4" />
+			</Button>
+			<Button
+				variant="outline"
+				size="icon-sm"
+				disabled={!canNextPage}
+				aria-label="Nächste Seite"
+				onclick={() => (pageIndex += 1)}
+			>
+				<ChevronRightIcon class="size-4" />
+			</Button>
+		</div>
 	</div>
 </main>
 

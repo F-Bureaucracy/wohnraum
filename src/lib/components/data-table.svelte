@@ -1,5 +1,5 @@
 <script lang="ts" generics="TData, TValue">
-import { ChevronDownIcon, XIcon } from '@lucide/svelte';
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from '@lucide/svelte';
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
@@ -80,11 +80,14 @@ function initialVisibility(cols: ColumnDef<TData, TValue>[]): VisibilityState {
 	return v;
 }
 
-function notifyFilteredDataChange(_columnFilters: ColumnFiltersState, _data: TData[]): void {
+function notifyFilteredDataChange(): void {
 	onFilteredDataChange?.(table.getFilteredRowModel().rows.map((row) => row.original));
 }
 
+const resolveDynamicHref = resolve as unknown as (href: string) => string;
+
 let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
+let pageSizeSelection = $derived(String(pagination.pageSize));
 let sorting = $state<SortingState>([]);
 let columnFilters = $state<ColumnFiltersState>(initialColumnFilters ?? []);
 let columnVisibility = $state<VisibilityState>(initialVisibility(columns));
@@ -154,9 +157,23 @@ const table = createSvelteTable({
 });
 
 const activeChips = $derived(filters ? activeFilters(table, filters) : []);
+const filteredRowCount = $derived(table.getFilteredRowModel().rows.length);
+const pageCount = $derived(table.getPageCount());
+const pageNumber = $derived(pageCount === 0 ? 0 : pagination.pageIndex + 1);
+const pageStart = $derived(
+	filteredRowCount === 0 ? 0 : pagination.pageIndex * pagination.pageSize + 1,
+);
+const pageEnd = $derived(Math.min(filteredRowCount, (pagination.pageIndex + 1) * pagination.pageSize));
 
 $effect(() => {
-	notifyFilteredDataChange(columnFilters, data);
+	notifyFilteredDataChange();
+});
+
+$effect(() => {
+	const lastPageIndex = Math.max(pageCount - 1, 0);
+	if (pagination.pageIndex > lastPageIndex) {
+		pagination = { ...pagination, pageIndex: lastPageIndex };
+	}
 });
 
 $effect(() => {
@@ -164,7 +181,8 @@ $effect(() => {
 	const next = applyFiltersToParams(page.url.searchParams, columnFilters, filters);
 	if (paramsEqual(next, page.url.searchParams)) return;
 	const qs = next.toString();
-	replaceState(resolve(`${page.url.pathname}${qs ? `?${qs}` : ''}`), page.state);
+	// eslint-disable-next-line svelte/no-navigation-without-resolve
+	replaceState(resolveDynamicHref(`${page.url.pathname}${qs ? `?${qs}` : ''}`), page.state);
 });
 </script>
 
@@ -186,13 +204,15 @@ $effect(() => {
 				<DataTableFilters {table} {filters} />
 			{/if}
 			{#if createHref}
+				<!-- eslint-disable svelte/no-navigation-without-resolve -->
 				<a
-					href={resolve(createHref)}
+					href={resolveDynamicHref(createHref)}
 					class={[buttonVariants({ variant: 'default', size: 'sm' }), 'ms-auto']}
 				>
 					<PlusIcon class="size-4" />
 					{createLabel}
 				</a>
+				<!-- eslint-enable svelte/no-navigation-without-resolve -->
 			{:else}
 				<DropdownMenu.Root>
 					<DropdownMenu.Trigger>
@@ -273,6 +293,52 @@ $effect(() => {
 				{/each}
 			</Table.Body>
 		</Table.Root>
+	</div>
+
+	<div class="flex flex-col gap-3 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+		<div>
+			{#if filteredRowCount === 0}
+				Keine Einträge
+			{:else}
+				{pageStart}-{pageEnd} von {filteredRowCount} Einträgen
+			{/if}
+		</div>
+		<div class="flex flex-wrap items-center gap-2">
+			<label class="flex items-center gap-2">
+				<span>Zeilen</span>
+				<select
+					bind:value={pageSizeSelection}
+					onchange={() => table.setPageSize(Number(pageSizeSelection))}
+					class="border-input bg-background h-8 rounded-md border px-2 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+				>
+					<option value="10">10</option>
+					<option value="25">25</option>
+					<option value="50">50</option>
+					<option value="100">100</option>
+				</select>
+			</label>
+			<div class="min-w-20 text-center">
+				Seite {pageNumber} von {Math.max(pageCount, 1)}
+			</div>
+			<Button
+				variant="outline"
+				size="icon-sm"
+				disabled={!table.getCanPreviousPage()}
+				aria-label="Vorherige Seite"
+				onclick={() => table.previousPage()}
+			>
+				<ChevronLeftIcon class="size-4" />
+			</Button>
+			<Button
+				variant="outline"
+				size="icon-sm"
+				disabled={!table.getCanNextPage()}
+				aria-label="Nächste Seite"
+				onclick={() => table.nextPage()}
+			>
+				<ChevronRightIcon class="size-4" />
+			</Button>
+		</div>
 	</div>
 
 	<!-- 3. The New Floating Action Bar -->
