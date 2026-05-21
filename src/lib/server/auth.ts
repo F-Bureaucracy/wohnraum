@@ -12,6 +12,19 @@ import { organization as organizationTable } from "$lib/server/db/auth.schema";
 
 import { eq, like, or } from "drizzle-orm";
 
+function slugify(value: string | null | undefined): string {
+  const slug = (value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/ß/g, "ss")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || "organisation";
+}
+
 async function findAvailableSlug(baseSlug: string): Promise<string> {
   const existing = await db
     .select({ slug: organizationTable.slug })
