@@ -6,6 +6,7 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
 } from "drizzle-orm/pg-core";
 import { organization, user } from "./auth.schema";
 
@@ -114,5 +115,21 @@ export const vermieterNote = pgTable("vermieter_note", {
     .$onUpdate(() => new Date())
     .notNull(),
 });
+
+export const bookmark = pgTable(
+  "bookmark",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (t) => [unique().on(t.userId, t.entityType, t.entityId)],
+);
 
 export * from "./auth.schema";

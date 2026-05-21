@@ -5,6 +5,7 @@ import {
   renderComponent,
   renderSnippet,
 } from "$lib/components/ui/data-table/index.js";
+import BookmarkButton from "./bookmark-button.svelte";
 import DataTableActions from "./actions.svelte";
 
 export type Mietobjekt = {
@@ -15,6 +16,7 @@ export type Mietobjekt = {
   kaltmiete: number;
   lng?: number;
   lat?: number;
+  bookmarked?: boolean;
   createdAt: Date;
 };
 
@@ -27,6 +29,7 @@ const numberFmt = new Intl.NumberFormat("de-DE");
 
 export function createMietobjekteColumns(
   basePath: string,
+  opts: { bookmarkAction?: string } = {},
 ): ColumnDef<Mietobjekt>[] {
   const actionProps = {
     entitySingular: "Mietobjekt",
@@ -35,6 +38,7 @@ export function createMietobjekteColumns(
     deleteAction: `${basePath}?/deleteMietobjekt`,
     editAction: `${basePath}?/updateMietobjekt`,
   };
+  const bookmarkAction = opts.bookmarkAction;
   return [
     {
       id: "select",
@@ -57,6 +61,23 @@ export function createMietobjekteColumns(
       enableSorting: false,
       enableHiding: false,
     },
+    ...(bookmarkAction
+      ? [
+          {
+            id: "bookmark",
+            size: 48,
+            enableSorting: false,
+            enableHiding: false,
+            cell: ({ row }) =>
+              renderComponent(BookmarkButton, {
+                entityType: "mietobjekt" as const,
+                entityId: row.original.id,
+                bookmarked: row.original.bookmarked ?? false,
+                action: bookmarkAction,
+              }),
+          } satisfies ColumnDef<Mietobjekt>,
+        ]
+      : []),
     {
       accessorKey: "adresse",
       header: "Adresse",

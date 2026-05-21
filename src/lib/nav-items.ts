@@ -3,6 +3,7 @@ import FileTextIcon from "@lucide/svelte/icons/file-text";
 import KeyIcon from "@lucide/svelte/icons/key";
 import MessageSquareIcon from "@lucide/svelte/icons/message-square";
 import UsersIcon from "@lucide/svelte/icons/users";
+import UsersRoundIcon from "@lucide/svelte/icons/users-round";
 import type { Component } from "svelte";
 
 export type NavItem = { title: string; url: string; icon: Component };
@@ -13,6 +14,7 @@ export const caseworkerNav: NavItem[] = [
   { title: "Mietobjekte", url: "/admin/mietobjekte", icon: Building2Icon },
   { title: "Dokumente", url: "/admin/dokumente", icon: FileTextIcon },
   { title: "Nachrichten", url: "/admin/nachrichten", icon: MessageSquareIcon },
+  { title: "Benutzer", url: "/users", icon: UsersRoundIcon },
 ];
 
 export const companyNav: NavItem[] = [
@@ -26,4 +28,5 @@ export const companyNav: NavItem[] = [
     url: "/vermieter/nachrichten",
     icon: MessageSquareIcon,
   },
+  { title: "Benutzer", url: "/users", icon: UsersRoundIcon },
 ];

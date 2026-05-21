@@ -4,6 +4,7 @@ import { fail, message, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import { db } from "$lib/server/db";
 import { mieter } from "$lib/server/db/schema";
+import { getBookmarkedIds, toggleBookmarkAction } from "$lib/server/bookmarks";
 import { mieterSchema } from "../new/schema";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -51,10 +52,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     zod4(mieterSchema),
   );
 
-  return { mieter: row, form };
+  const bookmarked = (await getBookmarkedIds(locals.user.id, "mieter")).has(
+    params.id,
+  );
+
+  return { mieter: row, form, bookmarked };
 };
 
 export const actions: Actions = {
+  toggleBookmark: toggleBookmarkAction,
+
   updateMieter: async (event) => {
     if (!event.locals.user) throw redirect(302, "/login");
     const activeOrg = event.locals.activeOrganization;

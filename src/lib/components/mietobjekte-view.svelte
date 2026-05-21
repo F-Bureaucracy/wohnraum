@@ -14,11 +14,13 @@
 		basePath,
 		createHref,
 		createLabel,
+		bookmarkAction,
 	}: {
 		data: Mietobjekt[];
 		basePath: string;
 		createHref?: string;
 		createLabel?: string;
+		bookmarkAction?: string;
 	} = $props();
 
 	const geo = $derived(
@@ -28,7 +30,7 @@
 		),
 	);
 
-	const columns = $derived(createMietobjekteColumns(basePath));
+	const columns = $derived(createMietobjekteColumns(basePath, { bookmarkAction }));
 	let activePopup: string | null = $state(null);
 	let map = $state<maplibregl.Map>();
 

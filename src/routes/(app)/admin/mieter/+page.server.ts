@@ -2,7 +2,8 @@ import { desc, eq } from "drizzle-orm";
 import { error, redirect } from "@sveltejs/kit";
 import { db } from "$lib/server/db";
 import { mieter } from "$lib/server/db/schema";
-import type { PageServerLoad } from "./$types";
+import { getBookmarkedIds, toggleBookmarkAction } from "$lib/server/bookmarks";
+import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals }) => {
   if (!locals.user) throw redirect(302, "/login");
@@ -24,6 +25,8 @@ export const load: PageServerLoad = async ({ locals }) => {
     .where(eq(mieter.organizationId, activeOrg.id))
     .orderBy(desc(mieter.createdAt));
 
+  const bookmarked = await getBookmarkedIds(locals.user.id, "mieter");
+
   return {
     mieter: rows.map((r) => ({
       id: r.id,
@@ -31,7 +34,12 @@ export const load: PageServerLoad = async ({ locals }) => {
       email: r.email ?? "",
       telefon: r.phone ?? "",
       mietobjekt: "",
+      bookmarked: bookmarked.has(r.id),
       createdAt: r.createdAt,
     })),
   };
+};
+
+export const actions: Actions = {
+  toggleBookmark: toggleBookmarkAction,
 };

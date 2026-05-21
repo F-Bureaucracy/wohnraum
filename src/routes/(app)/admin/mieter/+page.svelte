@@ -5,10 +5,12 @@
 	import * as Empty from '$lib/components/ui/empty/index.js';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import UsersIcon from '@lucide/svelte/icons/users';
-	import { mieterColumns } from '$lib/components/columns-mieter';
+	import { createMieterColumns } from '$lib/components/columns-mieter';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+
+	const columns = createMieterColumns({ bookmarkAction: '/admin/mieter?/toggleBookmark' });
 </script>
 
 <PageHeader title="Mieter" />
@@ -35,7 +37,7 @@
 {:else}
 	<div class="flex flex-1 flex-col gap-4 p-4 pt-0">
 		<DataTable
-			columns={mieterColumns}
+			{columns}
 			data={data.mieter}
 			filterColumnId="name"
 			filterPlaceholder="Mieter suchen..."

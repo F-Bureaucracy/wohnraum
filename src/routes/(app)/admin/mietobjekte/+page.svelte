@@ -7,4 +7,8 @@
 </script>
 
 <PageHeader title="Mietobjekte" />
-<MietobjekteView data={data.mietobjekte} basePath="/admin/mietobjekte" />
+<MietobjekteView
+	data={data.mietobjekte}
+	basePath="/admin/mietobjekte"
+	bookmarkAction="/admin/mietobjekte?/toggleBookmark"
+/>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/page-header.svelte';
 	import DeleteButton from '$lib/components/delete-button.svelte';
+	import BookmarkButton from '$lib/components/bookmark-button.svelte';
 	import MieterForm from '../new/mieter-form.svelte';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
@@ -62,6 +63,15 @@
 
 <div class="flex items-center justify-end gap-2 px-4 pb-2">
 	{#if !editing}
+		<BookmarkButton
+			entityType="mieter"
+			entityId={m.id}
+			bookmarked={data.bookmarked}
+			action="?/toggleBookmark"
+			variant="outline"
+			size="sm"
+			label={data.bookmarked ? 'Gemerkt' : 'Merken'}
+		/>
 		<Button size="sm" variant="outline" onclick={() => (editing = true)}>
 			<PencilIcon class="size-4" />
 			Bearbeiten

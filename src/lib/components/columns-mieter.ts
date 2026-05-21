@@ -5,6 +5,7 @@ import {
   renderComponent,
   renderSnippet,
 } from "$lib/components/ui/data-table/index.js";
+import BookmarkButton from "./bookmark-button.svelte";
 import DataTableActions from "./actions.svelte";
 
 export type Mieter = {
@@ -13,6 +14,7 @@ export type Mieter = {
   email: string;
   telefon: string;
   mietobjekt: string;
+  bookmarked?: boolean;
   createdAt: Date;
 };
 
@@ -24,70 +26,92 @@ const actionProps = {
   editAction: "/admin/mieter?/updateMieter",
 };
 
-export const mieterColumns: ColumnDef<Mieter>[] = [
-  {
-    id: "select",
-    size: 40,
-    header: ({ table }) =>
-      renderComponent(Checkbox, {
-        checked: table.getIsAllPageRowsSelected(),
-        indeterminate:
-          table.getIsSomePageRowsSelected() &&
-          !table.getIsAllPageRowsSelected(),
-        onCheckedChange: (value) => table.toggleAllPageRowsSelected(!!value),
-        "aria-label": "Select all",
-      }),
-    cell: ({ row }) =>
-      renderComponent(Checkbox, {
-        checked: row.getIsSelected(),
-        onCheckedChange: (value) => row.toggleSelected(!!value),
-        "aria-label": "Select row",
-      }),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "name",
-    header: "Name",
-    size: 200,
-    cell: ({ row }) =>
-      linkCell(row.original.name, `/admin/mieter/${row.original.id}`),
-  },
-  {
-    accessorKey: "email",
-    header: "E-Mail",
-    size: 220,
-    cell: ({ row }) => truncCell(row.original.email),
-  },
-  {
-    accessorKey: "telefon",
-    header: "Telefon",
-    size: 140,
-    cell: ({ row }) => truncCell(row.original.telefon),
-  },
-  {
-    accessorKey: "mietobjekt",
-    header: "Mietobjekt",
-    size: 220,
-    cell: ({ row }) => truncCell(row.original.mietobjekt),
-  },
-  {
-    accessorKey: "createdAt",
-    header: "Erstellt am",
-    size: 140,
-    cell: ({ row }) => dateCell(row.original.createdAt),
-  },
-  {
-    id: "actions",
-    size: 56,
-    cell: ({ row }) =>
-      renderComponent(DataTableActions, {
-        ids: [row.original.id],
-        title: row.original.name,
-        ...actionProps,
-      }),
-  },
-];
+export function createMieterColumns(
+  opts: { bookmarkAction?: string } = {},
+): ColumnDef<Mieter>[] {
+  const bookmarkAction = opts.bookmarkAction;
+  return [
+    {
+      id: "select",
+      size: 40,
+      header: ({ table }) =>
+        renderComponent(Checkbox, {
+          checked: table.getIsAllPageRowsSelected(),
+          indeterminate:
+            table.getIsSomePageRowsSelected() &&
+            !table.getIsAllPageRowsSelected(),
+          onCheckedChange: (value) => table.toggleAllPageRowsSelected(!!value),
+          "aria-label": "Select all",
+        }),
+      cell: ({ row }) =>
+        renderComponent(Checkbox, {
+          checked: row.getIsSelected(),
+          onCheckedChange: (value) => row.toggleSelected(!!value),
+          "aria-label": "Select row",
+        }),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    ...(bookmarkAction
+      ? [
+          {
+            id: "bookmark",
+            size: 48,
+            enableSorting: false,
+            enableHiding: false,
+            cell: ({ row }) =>
+              renderComponent(BookmarkButton, {
+                entityType: "mieter" as const,
+                entityId: row.original.id,
+                bookmarked: row.original.bookmarked ?? false,
+                action: bookmarkAction,
+              }),
+          } satisfies ColumnDef<Mieter>,
+        ]
+      : []),
+    {
+      accessorKey: "name",
+      header: "Name",
+      size: 200,
+      cell: ({ row }) =>
+        linkCell(row.original.name, `/admin/mieter/${row.original.id}`),
+    },
+    {
+      accessorKey: "email",
+      header: "E-Mail",
+      size: 220,
+      cell: ({ row }) => truncCell(row.original.email),
+    },
+    {
+      accessorKey: "telefon",
+      header: "Telefon",
+      size: 140,
+      cell: ({ row }) => truncCell(row.original.telefon),
+    },
+    {
+      accessorKey: "mietobjekt",
+      header: "Mietobjekt",
+      size: 220,
+      cell: ({ row }) => truncCell(row.original.mietobjekt),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Erstellt am",
+      size: 140,
+      cell: ({ row }) => dateCell(row.original.createdAt),
+    },
+    {
+      id: "actions",
+      size: 56,
+      cell: ({ row }) =>
+        renderComponent(DataTableActions, {
+          ids: [row.original.id],
+          title: row.original.name,
+          ...actionProps,
+        }),
+    },
+  ];
+}
 
 function linkCell(value: string, href: string) {
   return renderSnippet(

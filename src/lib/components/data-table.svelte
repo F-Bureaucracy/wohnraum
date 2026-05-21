@@ -164,7 +164,7 @@ const table = createSvelteTable({
 	</div>
 
 	<!-- 2. Your existing Table -->
-	<div class="w-full overflow-x-auto rounded-md border">
+	<div class="table-scroll w-full overflow-x-auto rounded-md border">
 		<Table.Root class="table-fixed">
 			<Table.Header>
 				{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
@@ -250,3 +250,23 @@ const table = createSvelteTable({
 		</div>
 	{/if}
 </div>
+
+<style>
+	.table-scroll {
+		scrollbar-width: thin;
+		scrollbar-color: var(--color-border) transparent;
+	}
+	.table-scroll::-webkit-scrollbar {
+		height: 10px;
+	}
+	.table-scroll::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	.table-scroll::-webkit-scrollbar-thumb {
+		background-color: var(--color-border);
+		border-radius: 9999px;
+	}
+	.table-scroll::-webkit-scrollbar-thumb:hover {
+		background-color: var(--color-muted-foreground);
+	}
+</style>
