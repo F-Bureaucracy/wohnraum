@@ -27,11 +27,6 @@
 				url: "/admin/dokumente",
 				icon: FileTextIcon,
 			},
-			{
-				title: "Nachrichten",
-				url: "/admin/nachrichten",
-				icon: MessageSquareIcon,
-			},
 		],
 	};
 </script>

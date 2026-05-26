@@ -167,6 +167,17 @@
 								<div class="text-muted-foreground text-xs">
 									Rolle: {notification.role ?? 'member'} · Ablauf: {formatDate(notification.expiresAt)}
 								</div>
+								{#if notification.type === 'incoming-invitation'}
+									<form method="POST" action="/notifications/accept-invitation" class="pt-2">
+										<input type="hidden" name="invitationId" value={notification.id} />
+										<button
+											type="submit"
+											class="bg-primary text-primary-foreground hover:bg-primary/80 inline-flex h-8 items-center justify-center rounded-md px-2.5 text-sm font-medium"
+										>
+											Einladung annehmen
+										</button>
+									</form>
+								{/if}
 							</div>
 							<Badge variant="outline">Einladung</Badge>
 						</div>

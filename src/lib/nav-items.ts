@@ -14,7 +14,6 @@ export const caseworkerNav: NavItem[] = [
   { title: "Mieter", url: "/admin/mieter", icon: KeyIcon },
   { title: "Mietobjekte", url: "/admin/mietobjekte", icon: Building2Icon },
   { title: "Dokumente", url: "/admin/dokumente", icon: FileTextIcon },
-  { title: "Nachrichten", url: "/admin/nachrichten", icon: MessageSquareIcon },
   { title: "Benutzer", url: "/users", icon: UsersRoundIcon },
 ];
 
@@ -23,11 +22,6 @@ export const companyNav: NavItem[] = [
     title: "Mietobjekte",
     url: "/vermieter/mietobjekte",
     icon: Building2Icon,
-  },
-  {
-    title: "Nachrichten",
-    url: "/vermieter/nachrichten",
-    icon: MessageSquareIcon,
   },
   { title: "Benutzer", url: "/users", icon: UsersRoundIcon },
 ];

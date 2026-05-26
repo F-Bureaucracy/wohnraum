@@ -36,7 +36,7 @@ No test runner is configured. Treat `bun run check` and `bun run lint` as the re
 
 **Database schema.** `src/lib/server/db/schema.ts` is the entry point and re-exports `./auth.schema` (generated — do not hand-edit; regenerate via `bun run auth:schema` after changing the Better Auth config). Add app tables to `schema.ts`, then `bun run db:generate` + `db:migrate`.
 
-**Route layout.** Authenticated app lives under `src/routes/(app)/` (Mietobjekte, Mieter, Vermieter, Dokumente, Nachrichten). Auth-related routes (`login`, `signup`, `auth`, `password-reset`, `settings`) live at the top level of `src/routes/`. UI is German-language domain terminology.
+**Route layout.** Authenticated app lives under `src/routes/(app)/` (Mietobjekte, Mieter, Vermieter, Dokumente). Auth-related routes (`login`, `signup`, `auth`, `password-reset`, `settings`) live at the top level of `src/routes/`. UI is German-language domain terminology.
 
 **Imports.** Use `$lib/...` for shared modules; server-only code must live under `src/lib/server/` so SvelteKit's import boundary enforces it.
 
