@@ -4,6 +4,7 @@ import {
   doublePrecision,
   index,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -17,6 +18,26 @@ export const task = pgTable("task", {
     .$defaultFn(() => crypto.randomUUID()),
   title: text("title").notNull(),
   priority: integer("priority").notNull().default(1),
+});
+
+// Admin-editable matching filters. A single global list (no organization scoping)
+// curated by administration-org admins; values are stored per entity in the
+// `features` jsonb bags below, keyed by `key`.
+export const filterDefinition = pgTable("filter_definition", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  key: text("key").notNull().unique(),
+  label: text("label").notNull(),
+  mieterLabel: text("mieter_label"),
+  appliesToMietobjekt: boolean("applies_to_mietobjekt").notNull().default(true),
+  appliesToMieter: boolean("applies_to_mieter").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
 });
 
 export const mietobjekt = pgTable("mietobjekt", {
@@ -37,8 +58,6 @@ export const mietobjekt = pgTable("mietobjekt", {
   livingArea: integer("living_area").notNull(),
   rooms: integer("rooms").notNull(),
   bedrooms: integer("bedrooms"),
-  hasKitchen: boolean("has_kitchen").notNull().default(false),
-  hasBalcony: boolean("has_balcony").notNull().default(false),
 
   coldRentCents: integer("cold_rent_cents").notNull(),
   operatingCostsCents: integer("operating_costs_cents").notNull().default(0),
@@ -49,8 +68,12 @@ export const mietobjekt = pgTable("mietobjekt", {
   minLeaseMonths: integer("min_lease_months"),
 
   maxOccupants: integer("max_occupants").notNull(),
-  barrierFree: boolean("barrier_free").notNull().default(false),
-  petsAllowed: boolean("pets_allowed").notNull().default(false),
+
+  // Boolean matching features the apartment offers, keyed by filterDefinition.key.
+  features: jsonb("features")
+    .$type<Record<string, boolean>>()
+    .notNull()
+    .default({}),
 
   description: text("description"),
 
@@ -86,8 +109,12 @@ export const mieter = pgTable("mieter", {
 
   householdSize: integer("household_size").notNull().default(1),
   maxColdRentCents: integer("max_cold_rent_cents"),
-  needsBarrierFree: boolean("needs_barrier_free").notNull().default(false),
-  hasPets: boolean("has_pets").notNull().default(false),
+
+  // Boolean matching features the tenant needs, keyed by filterDefinition.key.
+  features: jsonb("features")
+    .$type<Record<string, boolean>>()
+    .notNull()
+    .default({}),
 
   availableFrom: date("available_from"),
   notes: text("notes"),

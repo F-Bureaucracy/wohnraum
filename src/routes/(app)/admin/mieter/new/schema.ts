@@ -15,8 +15,9 @@ export const mieterSchema = z.object({
 
   householdSize: z.number().int().positive("Mind. 1 Person"),
   maxColdRent: z.number().nonnegative().optional(),
-  needsBarrierFree: z.boolean().default(false),
-  hasPets: z.boolean().default(false),
+
+  // Admin-defined boolean matching requirements, keyed by filterDefinition.key.
+  features: z.record(z.string(), z.boolean()).default({}),
 
   availableFrom: z
     .string()

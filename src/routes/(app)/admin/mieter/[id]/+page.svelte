@@ -6,7 +6,10 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { addMieterRequirementSearchParams, getMieterRequirementLabels } from '$lib/matching-flags';
+	import {
+		addMieterRequirementSearchParams,
+		getMieterRequirementLabels
+	} from '$lib/matching-flags';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import HomeSearchIcon from '@lucide/svelte/icons/house';
@@ -21,7 +24,7 @@
 
 	const sucheHref = $derived.by(() => {
 		const params = new SvelteURLSearchParams();
-		addMieterRequirementSearchParams(params, m);
+		addMieterRequirementSearchParams(params, data.filterDefinitions, m.features);
 		if (m.maxColdRentCents != null) {
 			params.set('kaltmiete_max', String(Math.round(m.maxColdRentCents / 100)));
 		}
@@ -66,7 +69,7 @@
 		{ label: 'Verfügbar ab', value: formatDate(m.availableFrom) }
 	]);
 
-	const merkmale = $derived(getMieterRequirementLabels(m));
+	const merkmale = $derived(getMieterRequirementLabels(data.filterDefinitions, m.features));
 </script>
 
 <PageHeader title={fullName} parent={{ label: 'Mieter', href: '/admin/mieter' }} />
@@ -104,6 +107,7 @@
 	<div class="mx-auto w-full max-w-5xl p-4 md:p-6">
 		<MieterForm
 			data={{ form: data.form }}
+			filterDefinitions={data.filterDefinitions}
 			title="Mieter bearbeiten"
 			description="Aktualisieren Sie die Angaben zu dieser Person."
 			action="?/updateMieter"

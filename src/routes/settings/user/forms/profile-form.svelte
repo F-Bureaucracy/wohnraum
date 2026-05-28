@@ -34,13 +34,14 @@ const initials = $derived(
 );
 </script>
 
-<Card.Root>
-	<Card.Header>
-		<Card.Title>Profile</Card.Title>
-		<Card.Description>Update your display name and avatar.</Card.Description>
-	</Card.Header>
-	<form method="POST" action="?/updateProfile" use:enhance>
-		<Card.Content class="space-y-4">
+<div class="grid gap-x-8 gap-y-3 md:grid-cols-3">
+	<div class="md:pt-1">
+		<h2 class="text-base font-semibold">Profile</h2>
+		<p class="mt-1 text-sm text-muted-foreground">Update your display name and avatar.</p>
+	</div>
+	<Card.Root class="md:col-span-2">
+		<form method="POST" action="?/updateProfile" use:enhance>
+			<Card.Content class="space-y-4">
 			<div class="flex items-center gap-4">
 				<Avatar.Root size="lg">
 					{#if $formData.image}
@@ -89,5 +90,6 @@ const initials = $derived(
 				{/if}
 			</Form.Button>
 		</Card.Footer>
-	</form>
-</Card.Root>
+		</form>
+	</Card.Root>
+</div>

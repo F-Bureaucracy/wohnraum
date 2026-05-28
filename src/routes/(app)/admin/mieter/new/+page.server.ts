@@ -4,6 +4,8 @@ import { zod4 } from "sveltekit-superforms/adapters";
 import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
 import { mieter } from "$lib/server/db/schema";
+import { loadFilterDefinitions } from "$lib/server/filter-definitions";
+import { sanitizeFeatures } from "$lib/matching-flags";
 import type { Actions, PageServerLoad } from "./$types";
 import { mieterSchema } from "./schema";
 
@@ -30,6 +32,7 @@ export const actions: Actions = {
     if (!form.valid) return fail(400, { form });
 
     const d = form.data;
+    const defs = await loadFilterDefinitions();
     try {
       const [created] = await db
         .insert(mieter)
@@ -44,8 +47,7 @@ export const actions: Actions = {
           householdSize: d.householdSize,
           maxColdRentCents:
             typeof d.maxColdRent === "number" ? toCents(d.maxColdRent) : null,
-          needsBarrierFree: d.needsBarrierFree,
-          hasPets: d.hasPets,
+          features: sanitizeFeatures(defs, d.features, "mieter"),
           availableFrom: d.availableFrom || null,
           notes: d.notes || null,
         })

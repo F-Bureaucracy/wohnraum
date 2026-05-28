@@ -7,7 +7,8 @@ import { db } from "$lib/server/db";
 import { mietobjekt } from "$lib/server/db/schema";
 import { geocodeAddress } from "$lib/server/geocode";
 import { loadMietobjektDetail } from "$lib/server/mietobjekt-mapping";
-import { getMietobjektFeatureValues } from "$lib/matching-flags";
+import { loadFilterDefinitions } from "$lib/server/filter-definitions";
+import { sanitizeFeatures } from "$lib/matching-flags";
 import { mietobjektSchema } from "../new/schema";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -46,7 +47,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       availableFrom: toIsoDate(detail.availableFrom),
       minLeaseMonths: detail.minLeaseMonths ?? undefined,
       maxOccupants: detail.maxOccupants,
-      ...getMietobjektFeatureValues(detail),
+      features: detail.features,
       description: detail.beschreibung ?? "",
     },
     zod4(mietobjektSchema),
@@ -71,6 +72,8 @@ export const actions: Actions = {
     if (d.organizationId !== orgId) {
       return message(form, "Ungültige Organisation", { status: 400 });
     }
+
+    const defs = await loadFilterDefinitions();
 
     const [existing] = await db
       .select()
@@ -126,7 +129,7 @@ export const actions: Actions = {
           availableFrom: d.availableFrom,
           minLeaseMonths: d.minLeaseMonths ?? null,
           maxOccupants: d.maxOccupants,
-          ...getMietobjektFeatureValues(d),
+          features: sanitizeFeatures(defs, d.features, "mietobjekt"),
           description: d.description || null,
         })
         .where(

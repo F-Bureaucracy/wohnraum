@@ -5,7 +5,7 @@ import {
   renderComponent,
   renderSnippet,
 } from "$lib/components/ui/data-table/index.js";
-import { mietobjektFeatureFlags } from "$lib/matching-flags";
+import { type FilterDefinition, mietobjektDefs } from "$lib/matching-flags";
 import BookmarkButton from "./bookmark-button.svelte";
 import DataTableActions from "./actions.svelte";
 
@@ -16,14 +16,14 @@ export type Mietobjekt = {
   flaeche: number;
   kaltmiete: number;
   maxOccupants: number;
-  petsAllowed: boolean;
-  barrierFree: boolean;
-  hasKitchen: boolean;
-  hasBalcony: boolean;
+  features: Record<string, boolean>;
   lng?: number;
   lat?: number;
   bookmarked?: boolean;
   createdAt: Date;
+  // Feature booleans are spread onto the row under their filter key so TanStack
+  // column filters (accessorKey = key) can read them.
+  [key: string]: unknown;
 };
 
 const currencyFmt = new Intl.NumberFormat("de-DE", {
@@ -35,6 +35,7 @@ const numberFmt = new Intl.NumberFormat("de-DE");
 
 export function createMietobjekteColumns(
   basePath: string,
+  defs: FilterDefinition[],
   opts: { bookmarkAction?: string } = {},
 ): ColumnDef<Mietobjekt>[] {
   const actionProps = {
@@ -125,10 +126,10 @@ export function createMietobjekteColumns(
       filterFn: "inNumberRange",
       meta: { filterOnly: true },
     },
-    ...mietobjektFeatureFlags.map(
-      (flag) =>
+    ...mietobjektDefs(defs).map(
+      (def) =>
         ({
-          accessorKey: flag.mietobjektField,
+          accessorKey: def.key,
           enableHiding: false,
           filterFn: "equals",
           meta: { filterOnly: true },

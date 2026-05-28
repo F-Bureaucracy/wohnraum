@@ -8,12 +8,13 @@ import { Input } from "$lib/components/ui/input/index.js";
 import { Textarea } from "$lib/components/ui/textarea/index.js";
 import { Checkbox } from "$lib/components/ui/checkbox/index.js";
 import FormStepper, { type StepperStep } from "$lib/components/form-stepper.svelte";
-import { matchingRequirementFlags, mietobjektAmenityFlags } from "$lib/matching-flags";
+import { type FilterDefinition, mietobjektDefs } from "$lib/matching-flags";
 import { type FormSchema, mietobjektSchema } from "./schema.ts";
 import { toast } from "svelte-sonner";
 
 let {
 	data,
+	filterDefinitions,
 	title = "Neues Mietobjekt",
 	description = "Erfassen Sie eine Wohnung, die zur Vermietung angeboten wird.",
 	submitLabel = "Mietobjekt anlegen",
@@ -26,6 +27,7 @@ let {
 		form: SuperValidated<Infer<FormSchema>>;
 		organizations: Array<{ id: string; name: string }>;
 	};
+	filterDefinitions: FilterDefinition[];
 	title?: string;
 	description?: string;
 	submitLabel?: string;
@@ -47,6 +49,8 @@ const form = superForm(data.form, {
 	},
 });
 const { form: formData, enhance, submitting } = form;
+
+const featureDefs = $derived(mietobjektDefs(filterDefinitions));
 
 const orgs = data.organizations;
 const selectedOrgLabel = $derived(
@@ -246,18 +250,6 @@ function scrollToStep(id: string) {
 						<Form.FieldErrors />
 					</Form.Field>
 				</div>
-				<div class="flex flex-wrap gap-6 border-t pt-4">
-					{#each mietobjektAmenityFlags as flag (flag.mietobjektField)}
-						<Form.Field {form} name={flag.mietobjektField} class="flex flex-row items-center gap-2">
-							<Form.Control>
-								{#snippet children({ props })}
-									<Checkbox {...props} bind:checked={$formData[flag.mietobjektField]} />
-									<Form.Label class="!mt-0 cursor-pointer">{flag.mietobjektLabel}</Form.Label>
-								{/snippet}
-							</Form.Control>
-						</Form.Field>
-					{/each}
-				</div>
 			</div>
 		</section>
 
@@ -379,18 +371,19 @@ function scrollToStep(id: string) {
 					</Form.Control>
 					<Form.FieldErrors />
 				</Form.Field>
-				<div class="flex flex-wrap gap-6 border-t pt-4">
-					{#each matchingRequirementFlags as flag (flag.mietobjektField)}
-						<Form.Field {form} name={flag.mietobjektField} class="flex flex-row items-center gap-2">
-							<Form.Control>
-								{#snippet children({ props })}
-									<Checkbox {...props} bind:checked={$formData[flag.mietobjektField]} />
-									<Form.Label class="!mt-0 cursor-pointer">{flag.mietobjektLabel}</Form.Label>
-								{/snippet}
-							</Form.Control>
-						</Form.Field>
-					{/each}
-				</div>
+				{#if featureDefs.length > 0}
+					<div class="flex flex-wrap gap-6 border-t pt-4">
+						{#each featureDefs as def (def.key)}
+							<label class="flex cursor-pointer flex-row items-center gap-2">
+								<Checkbox
+									checked={$formData.features[def.key] === true}
+									onCheckedChange={(v) => ($formData.features[def.key] = v === true)}
+								/>
+								<span class="text-sm font-medium">{def.label}</span>
+							</label>
+						{/each}
+					</div>
+				{/if}
 			</div>
 		</section>
 

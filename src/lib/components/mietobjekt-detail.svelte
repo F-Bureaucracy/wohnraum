@@ -8,16 +8,18 @@
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import UsersIcon from '@lucide/svelte/icons/users';
 	import UserIcon from '@lucide/svelte/icons/user';
-	import { getMietobjektFeatureLabels } from '$lib/matching-flags';
+	import { type FilterDefinition, getMietobjektFeatureLabels } from '$lib/matching-flags';
 	import type { MietobjektBewohner, MietobjektDetail } from '$lib/server/mietobjekt-mapping';
 
 	let {
 		mietobjekt: m,
+		filterDefinitions,
 		showVermieter = true,
 		showBewohner = true,
 		bewohner = []
 	}: {
 		mietobjekt: MietobjektDetail;
+		filterDefinitions: FilterDefinition[];
 		showVermieter?: boolean;
 		showBewohner?: boolean;
 		bewohner?: MietobjektBewohner[];
@@ -63,7 +65,7 @@
 		{ label: 'Kaution', value: currencyFmt.format(m.kaution) },
 	]);
 
-	const merkmale = $derived(getMietobjektFeatureLabels(m));
+	const merkmale = $derived(getMietobjektFeatureLabels(filterDefinitions, m.features));
 </script>
 
 <div class="flex flex-1 flex-col gap-4 p-4 pt-0">

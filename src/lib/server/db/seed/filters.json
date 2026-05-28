@@ -1,0 +1,66 @@
+[
+  {
+    "key": "barrierearm",
+    "label": "Barrierearm",
+    "mieterLabel": "Barrierearm benötigt",
+    "appliesToMietobjekt": true,
+    "appliesToMieter": true,
+    "sortOrder": 10
+  },
+  {
+    "key": "haustiere-erlaubt",
+    "label": "Haustiere erlaubt",
+    "mieterLabel": "Haustiere",
+    "appliesToMietobjekt": true,
+    "appliesToMieter": true,
+    "sortOrder": 20
+  },
+  {
+    "key": "wg-geeignet",
+    "label": "WG-geeignet",
+    "mieterLabel": "Sucht WG",
+    "appliesToMietobjekt": true,
+    "appliesToMieter": true,
+    "sortOrder": 30
+  },
+  {
+    "key": "wbs",
+    "label": "WBS erforderlich",
+    "mieterLabel": "Hat WBS",
+    "appliesToMietobjekt": true,
+    "appliesToMieter": true,
+    "sortOrder": 40
+  },
+  {
+    "key": "schufa-erforderlich",
+    "label": "Schufa erforderlich",
+    "mieterLabel": "Schufa vorhanden",
+    "appliesToMietobjekt": true,
+    "appliesToMieter": true,
+    "sortOrder": 50
+  },
+  {
+    "key": "kueche-inklusive",
+    "label": "Küche inklusive",
+    "mieterLabel": null,
+    "appliesToMietobjekt": true,
+    "appliesToMieter": false,
+    "sortOrder": 60
+  },
+  {
+    "key": "balkon-garten",
+    "label": "Balkon/Gartennutzung",
+    "mieterLabel": null,
+    "appliesToMietobjekt": true,
+    "appliesToMieter": false,
+    "sortOrder": 70
+  },
+  {
+    "key": "strom-inklusive",
+    "label": "Strom inklusive",
+    "mieterLabel": null,
+    "appliesToMietobjekt": true,
+    "appliesToMieter": false,
+    "sortOrder": 80
+  }
+]

@@ -10,11 +10,13 @@
 		type Mietobjekt,
 	} from '$lib/components/columns-mietobjekte';
 	import type { TableFilter } from '$lib/components/table-filters';
+	import type { FilterDefinition } from '$lib/matching-flags';
 	import type { ColumnFiltersState } from '@tanstack/table-core';
 
 	let {
 		data,
 		basePath,
+		filterDefinitions,
 		createHref,
 		createLabel,
 		bookmarkAction,
@@ -23,6 +25,7 @@
 	}: {
 		data: Mietobjekt[];
 		basePath: string;
+		filterDefinitions: FilterDefinition[];
 		createHref?: string;
 		createLabel?: string;
 		bookmarkAction?: string;
@@ -40,7 +43,9 @@
 		),
 	);
 
-	const columns = $derived(createMietobjekteColumns(basePath, { bookmarkAction }));
+	const columns = $derived(
+		createMietobjekteColumns(basePath, filterDefinitions, { bookmarkAction }),
+	);
 	let activePopup: string | null = $state(null);
 	let map = $state<maplibregl.Map>();
 

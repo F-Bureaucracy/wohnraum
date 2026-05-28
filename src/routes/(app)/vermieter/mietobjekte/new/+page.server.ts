@@ -6,7 +6,8 @@ import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
 import { mietobjekt } from "$lib/server/db/schema";
 import { geocodeAddress } from "$lib/server/geocode";
-import { getMietobjektFeatureValues } from "$lib/matching-flags";
+import { loadFilterDefinitions } from "$lib/server/filter-definitions";
+import { sanitizeFeatures } from "$lib/matching-flags";
 import type { Actions, PageServerLoad } from "./$types";
 import { mietobjektSchema } from "./schema";
 
@@ -49,6 +50,7 @@ export const actions: Actions = {
     }
 
     const d = form.data;
+    const defs = await loadFilterDefinitions();
     const geo = await geocodeAddress({
       street: d.street,
       houseNumber: d.houseNumber,
@@ -79,7 +81,7 @@ export const actions: Actions = {
           availableFrom: d.availableFrom,
           minLeaseMonths: d.minLeaseMonths ?? null,
           maxOccupants: d.maxOccupants,
-          ...getMietobjektFeatureValues(d),
+          features: sanitizeFeatures(defs, d.features, "mietobjekt"),
           description: d.description || null,
         })
         .returning();

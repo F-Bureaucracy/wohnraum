@@ -12,6 +12,8 @@ export const load: LayoutServerLoad = async (event) => {
     .catch(() => null);
   const role = activeMember?.role ?? "";
   const canManageOrg = role === "owner" || role === "admin";
+  const isAdministration =
+    event.locals.activeOrganization?.orgType === "administration";
 
-  return { user: event.locals.user, canManageOrg };
+  return { user: event.locals.user, canManageOrg, isAdministration };
 };

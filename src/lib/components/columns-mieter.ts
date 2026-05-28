@@ -5,7 +5,7 @@ import {
   renderComponent,
   renderSnippet,
 } from "$lib/components/ui/data-table/index.js";
-import { matchingRequirementFlags } from "$lib/matching-flags";
+import { type FilterDefinition, mieterDefs } from "$lib/matching-flags";
 import BookmarkButton from "./bookmark-button.svelte";
 import DataTableActions from "./actions.svelte";
 
@@ -17,10 +17,12 @@ export type Mieter = {
   mietobjekt: string;
   householdSize: number;
   maxColdRent?: number;
-  needsBarrierFree: boolean;
-  hasPets: boolean;
+  features: Record<string, boolean>;
   bookmarked?: boolean;
   createdAt: Date;
+  // Feature booleans are spread onto the row under their filter key so TanStack
+  // column filters (accessorKey = key) can read them.
+  [key: string]: unknown;
 };
 
 const actionProps = {
@@ -32,6 +34,7 @@ const actionProps = {
 };
 
 export function createMieterColumns(
+  defs: FilterDefinition[],
   opts: { bookmarkAction?: string } = {},
 ): ColumnDef<Mieter>[] {
   const bookmarkAction = opts.bookmarkAction;
@@ -117,10 +120,10 @@ export function createMieterColumns(
       filterFn: "inNumberRange",
       meta: { filterOnly: true },
     },
-    ...matchingRequirementFlags.map(
-      (flag) =>
+    ...mieterDefs(defs).map(
+      (def) =>
         ({
-          accessorKey: flag.mieterField,
+          accessorKey: def.key,
           enableHiding: false,
           filterFn: "equals",
           meta: { filterOnly: true },

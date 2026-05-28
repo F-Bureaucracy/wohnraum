@@ -8,7 +8,12 @@ import type { PageProps } from './$types';
 const { data }: PageProps = $props();
 
 const isWide = new MediaQuery('(min-width: 1024px)');
-const settingsNav = $derived(buildSettingsNav({ canManageOrg: data.canManageOrg }));
+const settingsNav = $derived(
+	buildSettingsNav({
+		canManageOrg: data.canManageOrg,
+		isAdministration: data.isAdministration,
+	}),
+);
 
 $effect(() => {
 	if (isWide.current) {

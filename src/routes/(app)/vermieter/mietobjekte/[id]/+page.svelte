@@ -37,6 +37,7 @@
 	<div class="mx-auto w-full max-w-5xl p-4 md:p-6">
 		<MietobjektForm
 			data={{ form: data.form, organizations: data.organizations }}
+			filterDefinitions={data.filterDefinitions}
 			title="Mietobjekt bearbeiten"
 			description="Aktualisieren Sie die Angaben zu dieser Wohnung."
 			action="?/updateMietobjekt"
@@ -47,5 +48,9 @@
 		/>
 	</div>
 {:else}
-	<MietobjektDetail mietobjekt={data.mietobjekt} showVermieter={false} />
+	<MietobjektDetail
+		mietobjekt={data.mietobjekt}
+		filterDefinitions={data.filterDefinitions}
+		showVermieter={false}
+	/>
 {/if}

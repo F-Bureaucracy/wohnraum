@@ -17,13 +17,14 @@ const form = superForm(initialForm, {
 const { form: formData, enhance, submitting } = form;
 </script>
 
-<Card.Root>
-	<Card.Header>
-		<Card.Title>Password</Card.Title>
-		<Card.Description>Choose a new password for email sign-in.</Card.Description>
-	</Card.Header>
-	<form method="POST" action="?/updatePassword" use:enhance>
-		<Card.Content class="space-y-4">
+<div class="grid gap-x-8 gap-y-3 md:grid-cols-3">
+	<div class="md:pt-1">
+		<h2 class="text-base font-semibold">Password</h2>
+		<p class="mt-1 text-sm text-muted-foreground">Choose a new password for email sign-in.</p>
+	</div>
+	<Card.Root class="md:col-span-2">
+		<form method="POST" action="?/updatePassword" use:enhance>
+			<Card.Content class="space-y-4">
 			<Form.Field {form} name="currentPassword">
 				<Form.Control>
 					{#snippet children({ props })}
@@ -64,5 +65,6 @@ const { form: formData, enhance, submitting } = form;
 				{/if}
 			</Form.Button>
 		</Card.Footer>
-	</form>
-</Card.Root>
+		</form>
+	</Card.Root>
+</div>

@@ -8,7 +8,12 @@ import type { LayoutProps } from './$types';
 const { children, data }: LayoutProps = $props();
 
 const isWide = new MediaQuery('(min-width: 1024px)');
-const settingsNav = $derived(buildSettingsNav({ canManageOrg: data.canManageOrg }));
+const settingsNav = $derived(
+	buildSettingsNav({
+		canManageOrg: data.canManageOrg,
+		isAdministration: data.isAdministration,
+	}),
+);
 </script>
 
 {#if isWide.current}
@@ -29,9 +34,8 @@ const settingsNav = $derived(buildSettingsNav({ canManageOrg: data.canManageOrg 
 					{#each group.items as item (item.href)}
 						<a
 							href={item.href}
-							class="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground {page.url.pathname.startsWith(
-								item.href,
-							)
+							class="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground {page
+								.url.pathname === item.href
 								? 'bg-accent font-medium text-accent-foreground'
 								: 'text-muted-foreground'}"
 						>

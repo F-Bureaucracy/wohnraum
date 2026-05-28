@@ -13,8 +13,6 @@ export const mietobjektSchema = z.object({
   livingArea: z.number().int().positive("Wohnfläche muss > 0 sein"),
   rooms: z.number().int().positive("Anzahl Zimmer muss > 0 sein"),
   bedrooms: z.number().int().nonnegative().optional(),
-  hasKitchen: z.boolean().default(false),
-  hasBalcony: z.boolean().default(false),
 
   coldRent: z.number().nonnegative("Kaltmiete muss ≥ 0 sein"),
   operatingCosts: z.number().nonnegative().default(0),
@@ -25,8 +23,9 @@ export const mietobjektSchema = z.object({
   minLeaseMonths: z.number().int().positive().optional(),
 
   maxOccupants: z.number().int().positive("Max. Bewohner muss > 0 sein"),
-  barrierFree: z.boolean().default(false),
-  petsAllowed: z.boolean().default(false),
+
+  // Admin-defined boolean matching features, keyed by filterDefinition.key.
+  features: z.record(z.string(), z.boolean()).default({}),
 
   description: z.string().optional(),
 });

@@ -96,7 +96,12 @@
 {#if form?.reservationError}
 	<p class="text-destructive px-4 pb-2 text-sm">{form.reservationError}</p>
 {/if}
-<MietobjektDetail mietobjekt={data.mietobjekt} bewohner={data.bewohner} showBewohner={false} />
+<MietobjektDetail
+	mietobjekt={data.mietobjekt}
+	filterDefinitions={data.filterDefinitions}
+	bewohner={data.bewohner}
+	showBewohner={false}
+/>
 
 <div class="flex flex-col gap-4 p-4 pt-0">
 	<Card.Root>

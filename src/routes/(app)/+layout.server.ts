@@ -9,6 +9,7 @@ import {
   organization,
   user as userTable,
 } from "$lib/server/db/schema";
+import { loadFilterDefinitions } from "$lib/server/filter-definitions";
 import { createOrganizationSchema } from "./organizations/schema";
 import type { LayoutServerLoad } from "./$types";
 
@@ -24,6 +25,7 @@ export const load: LayoutServerLoad = async (event) => {
   const createOrganizationForm = await superValidate(
     zod4(createOrganizationSchema),
   );
+  const filterDefinitions = await loadFilterDefinitions();
   const activeMember = await auth.api
     .getActiveMember({ headers: event.request.headers })
     .catch(() => null);
@@ -106,5 +108,6 @@ export const load: LayoutServerLoad = async (event) => {
     createOrganizationForm,
     canViewAuditLog: canViewOrgInvitations,
     notifications,
+    filterDefinitions,
   };
 };

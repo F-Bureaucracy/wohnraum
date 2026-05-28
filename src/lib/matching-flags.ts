@@ -1,102 +1,99 @@
 import type { TableFilter } from "$lib/components/table-filters";
 
-export const mietobjektFeatureFlags = [
-  {
-    mietobjektField: "barrierFree",
-    mieterField: "needsBarrierFree",
-    mietobjektLabel: "Barrierefrei",
-    mieterLabel: "Barrierefrei benötigt",
-    filterLabel: "Barrierefrei",
-    mieterFilterLabel: "Barrierefrei benötigt",
-  },
-  {
-    mietobjektField: "petsAllowed",
-    mieterField: "hasPets",
-    mietobjektLabel: "Haustiere erlaubt",
-    mieterLabel: "Haustiere",
-    filterLabel: "Haustiere erlaubt",
-    mieterFilterLabel: "Hat Haustiere",
-  },
-  {
-    mietobjektField: "hasKitchen",
-    mietobjektLabel: "Einbauküche",
-    filterLabel: "Einbauküche",
-  },
-  {
-    mietobjektField: "hasBalcony",
-    mietobjektLabel: "Balkon",
-    filterLabel: "Balkon",
-  },
-] as const;
+/**
+ * A matching filter definition, curated by administration-org admins.
+ * Client-safe mirror of the `filterDefinition` DB row.
+ */
+export type FilterDefinition = {
+  key: string;
+  label: string;
+  mieterLabel: string | null;
+  appliesToMietobjekt: boolean;
+  appliesToMieter: boolean;
+  sortOrder: number;
+};
 
-export const matchingRequirementFlags = mietobjektFeatureFlags.filter(
-  (flag): flag is Extract<MietobjektFeatureFlag, { mieterField: string }> =>
-    "mieterField" in flag,
-);
+export type FeatureValues = Record<string, boolean>;
 
-export const mietobjektAmenityFlags = mietobjektFeatureFlags.filter(
-  (flag): flag is Exclude<MietobjektFeatureFlag, { mieterField: string }> =>
-    !("mieterField" in flag),
-);
+export function mietobjektDefs(defs: FilterDefinition[]): FilterDefinition[] {
+  return defs.filter((d) => d.appliesToMietobjekt);
+}
 
-export type MietobjektFeatureFlag = (typeof mietobjektFeatureFlags)[number];
-export type MietobjektFeatureField = MietobjektFeatureFlag["mietobjektField"];
-export type MieterRequirementField =
-  (typeof matchingRequirementFlags)[number]["mieterField"];
+export function mieterDefs(defs: FilterDefinition[]): FilterDefinition[] {
+  return defs.filter((d) => d.appliesToMieter);
+}
 
-type MietobjektFeatureValues = Partial<Record<MietobjektFeatureField, boolean>>;
-type MieterRequirementValues = Partial<Record<MieterRequirementField, boolean>>;
-
-export function getMietobjektFeatureValues(
-  source: Record<MietobjektFeatureField, boolean>,
-): Record<MietobjektFeatureField, boolean> {
-  return Object.fromEntries(
-    mietobjektFeatureFlags.map((flag) => [
-      flag.mietobjektField,
-      source[flag.mietobjektField],
-    ]),
-  ) as Record<MietobjektFeatureField, boolean>;
+/** Label shown for the tenant (requirement) side of a filter. */
+export function mieterLabel(def: FilterDefinition): string {
+  return def.mieterLabel ?? def.label;
 }
 
 export function getMietobjektFeatureLabels(
-  mietobjekt: MietobjektFeatureValues,
+  defs: FilterDefinition[],
+  features: FeatureValues | null | undefined,
 ): string[] {
-  return mietobjektFeatureFlags
-    .filter((flag) => mietobjekt[flag.mietobjektField])
-    .map((flag) => flag.mietobjektLabel);
+  const f = features ?? {};
+  return mietobjektDefs(defs)
+    .filter((def) => f[def.key])
+    .map((def) => def.label);
 }
 
 export function getMieterRequirementLabels(
-  mieter: MieterRequirementValues,
+  defs: FilterDefinition[],
+  features: FeatureValues | null | undefined,
 ): string[] {
-  return matchingRequirementFlags
-    .filter((flag) => mieter[flag.mieterField])
-    .map((flag) => flag.mieterLabel);
+  const f = features ?? {};
+  return mieterDefs(defs)
+    .filter((def) => f[def.key])
+    .map((def) => mieterLabel(def));
 }
 
-export function getMietobjektFeatureFilters(): TableFilter[] {
-  return mietobjektFeatureFlags.map((flag) => ({
+export function getMietobjektFeatureFilters(
+  defs: FilterDefinition[],
+): TableFilter[] {
+  return mietobjektDefs(defs).map((def) => ({
     type: "boolean",
-    columnId: flag.mietobjektField,
-    label: flag.filterLabel,
+    columnId: def.key,
+    label: def.label,
   }));
 }
 
-export function getMieterRequirementFilters(): TableFilter[] {
-  return matchingRequirementFlags.map((flag) => ({
+export function getMieterRequirementFilters(
+  defs: FilterDefinition[],
+): TableFilter[] {
+  return mieterDefs(defs).map((def) => ({
     type: "boolean",
-    columnId: flag.mieterField,
-    label: flag.mieterFilterLabel,
+    columnId: def.key,
+    label: mieterLabel(def),
   }));
 }
 
 export function addMieterRequirementSearchParams(
   params: URLSearchParams,
-  mieter: MieterRequirementValues,
+  defs: FilterDefinition[],
+  features: FeatureValues | null | undefined,
 ) {
-  for (const flag of matchingRequirementFlags) {
-    if (mieter[flag.mieterField]) {
-      params.set(flag.mietobjektField, "true");
-    }
+  const f = features ?? {};
+  for (const def of mieterDefs(defs)) {
+    if (f[def.key]) params.set(def.key, "true");
   }
+}
+
+/**
+ * Keep only the boolean values whose key belongs to a definition applicable to
+ * the given side. Used server-side before persisting form input.
+ */
+export function sanitizeFeatures(
+  defs: FilterDefinition[],
+  raw: FeatureValues | null | undefined,
+  side: "mietobjekt" | "mieter",
+): FeatureValues {
+  const source = raw ?? {};
+  const applicable =
+    side === "mietobjekt" ? mietobjektDefs(defs) : mieterDefs(defs);
+  const result: FeatureValues = {};
+  for (const def of applicable) {
+    if (source[def.key]) result[def.key] = true;
+  }
+  return result;
 }

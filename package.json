@@ -15,6 +15,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
+    "db:seed": "bun run scripts/seed-filters.ts",
     "auth:schema": "better-auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
   },
   "devDependencies": {
@@ -62,6 +63,7 @@
     "@types/nodemailer": "^8.0.0",
     "better-auth-audit-logs": "^0.3.0",
     "nodemailer": "^8.0.7",
-    "postgres": "^3.4.9"
+    "postgres": "^3.4.9",
+    "prosekit": "^0.21.3"
   }
 }

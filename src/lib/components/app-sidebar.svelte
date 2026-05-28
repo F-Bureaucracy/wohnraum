@@ -2,7 +2,6 @@
 	import HandshakeIcon from "@lucide/svelte/icons/handshake";
 	import KeyIcon from "@lucide/svelte/icons/key";
 	import Building2Icon from "@lucide/svelte/icons/building-2";
-	import FileTextIcon from "@lucide/svelte/icons/file-text";
 	import MessageSquareIcon from "@lucide/svelte/icons/message-square";
 
 	const data = {
@@ -21,11 +20,6 @@
 				title: "Mietobjekte",
 				url: "/admin/mietobjekte",
 				icon: Building2Icon,
-			},
-			{
-				title: "Dokumente",
-				url: "/admin/dokumente",
-				icon: FileTextIcon,
 			},
 		],
 	};

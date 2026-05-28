@@ -48,7 +48,7 @@
 			max: ceilTo(Math.max(0, ...data.mietobjekte.map((m) => m.maxOccupants)), 1, 5),
 			step: 1,
 		},
-		...getMietobjektFeatureFilters(),
+		...getMietobjektFeatureFilters(data.filterDefinitions),
 	]);
 
 	const initialColumnFilters = $derived(parseFiltersFromParams(page.url.searchParams, filters));
@@ -58,6 +58,7 @@
 <MietobjekteView
 	data={data.mietobjekte}
 	basePath="/admin/mietobjekte"
+	filterDefinitions={data.filterDefinitions}
 	bookmarkAction="/admin/mietobjekte?/toggleBookmark"
 	{filters}
 	{initialColumnFilters}

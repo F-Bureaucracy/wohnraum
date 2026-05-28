@@ -8,12 +8,13 @@ import { Input } from "$lib/components/ui/input/index.js";
 import { Textarea } from "$lib/components/ui/textarea/index.js";
 import { Checkbox } from "$lib/components/ui/checkbox/index.js";
 import FormStepper, { type StepperStep } from "$lib/components/form-stepper.svelte";
-import { matchingRequirementFlags } from "$lib/matching-flags";
+import { type FilterDefinition, mieterDefs, mieterLabel } from "$lib/matching-flags";
 import { type FormSchema, mieterSchema } from "./schema.ts";
 import { toast } from "svelte-sonner";
 
 let {
 	data,
+	filterDefinitions,
 	title = "Neuer Mieter",
 	description = "Erfassen Sie eine Person, die eine Wohnung sucht.",
 	submitLabel = "Mieter anlegen",
@@ -25,6 +26,7 @@ let {
 	data: {
 		form: SuperValidated<Infer<FormSchema>>;
 	};
+	filterDefinitions: FilterDefinition[];
 	title?: string;
 	description?: string;
 	submitLabel?: string;
@@ -33,6 +35,8 @@ let {
 	onCancel?: () => void;
 	onSaved?: () => void;
 } = $props();
+
+const requirementDefs = $derived(mieterDefs(filterDefinitions));
 
 const form = superForm(data.form, {
 	validators: zod4Client(mieterSchema),
@@ -238,18 +242,19 @@ function scrollToStep(id: string) {
 						<Form.FieldErrors />
 					</Form.Field>
 				</div>
-				<div class="flex flex-wrap gap-6 border-t pt-4">
-					{#each matchingRequirementFlags as flag (flag.mieterField)}
-						<Form.Field {form} name={flag.mieterField} class="flex flex-row items-center gap-2">
-							<Form.Control>
-								{#snippet children({ props })}
-									<Checkbox {...props} bind:checked={$formData[flag.mieterField]} />
-									<Form.Label class="!mt-0 cursor-pointer">{flag.mieterLabel}</Form.Label>
-								{/snippet}
-							</Form.Control>
-						</Form.Field>
-					{/each}
-				</div>
+				{#if requirementDefs.length > 0}
+					<div class="flex flex-wrap gap-6 border-t pt-4">
+						{#each requirementDefs as def (def.key)}
+							<label class="flex cursor-pointer flex-row items-center gap-2">
+								<Checkbox
+									checked={$formData.features[def.key] === true}
+									onCheckedChange={(v) => ($formData.features[def.key] = v === true)}
+								/>
+								<span class="text-sm font-medium">{mieterLabel(def)}</span>
+							</label>
+						{/each}
+					</div>
+				{/if}
 			</div>
 		</section>
 

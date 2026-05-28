@@ -13,7 +13,9 @@
 
 	let { data }: { data: PageData } = $props();
 
-	const columns = createMieterColumns({ bookmarkAction: '/admin/mieter?/toggleBookmark' });
+	const columns = createMieterColumns(data.filterDefinitions, {
+		bookmarkAction: '/admin/mieter?/toggleBookmark',
+	});
 
 	function ceilTo(value: number, step: number, fallback: number) {
 		const max = Math.max(value, fallback);
@@ -42,7 +44,7 @@
 			max: ceilTo(Math.max(1, ...data.mieter.map((m) => m.householdSize)), 1, 4),
 			step: 1,
 		},
-		...getMieterRequirementFilters(),
+		...getMieterRequirementFilters(data.filterDefinitions),
 	]);
 
 	const initialColumnFilters = $derived(parseFiltersFromParams(page.url.searchParams, filters));

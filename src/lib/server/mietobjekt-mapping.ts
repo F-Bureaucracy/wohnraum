@@ -2,12 +2,12 @@ import { and, eq } from "drizzle-orm";
 import { error } from "@sveltejs/kit";
 import { db } from "$lib/server/db";
 import { mieter, mietobjekt, organization } from "$lib/server/db/schema";
-import { getMietobjektFeatureValues } from "$lib/matching-flags";
 import type { Mietobjekt } from "$lib/components/columns-mietobjekte";
 
 type Row = typeof mietobjekt.$inferSelect;
 
 export function mapMietobjektRow(r: Row): Mietobjekt {
+  const features = r.features ?? {};
   return {
     id: r.id,
     adresse: `${r.street} ${r.houseNumber}, ${r.postalCode} ${r.city}`,
@@ -15,7 +15,9 @@ export function mapMietobjektRow(r: Row): Mietobjekt {
     flaeche: r.livingArea,
     kaltmiete: r.coldRentCents / 100,
     maxOccupants: r.maxOccupants,
-    ...getMietobjektFeatureValues(r),
+    features,
+    // Spread feature booleans onto the row so TanStack column filters can read them.
+    ...features,
     lat: r.latitude ?? undefined,
     lng: r.longitude ?? undefined,
     createdAt: r.createdAt,
@@ -34,8 +36,6 @@ export type MietobjektDetail = {
   zimmer: number;
   bedrooms: number | null;
   flaeche: number;
-  hasKitchen: boolean;
-  hasBalcony: boolean;
   kaltmiete: number;
   nebenkosten: number;
   heizkosten: number;
@@ -43,8 +43,7 @@ export type MietobjektDetail = {
   availableFrom: string | Date | null;
   minLeaseMonths: number | null;
   maxOccupants: number;
-  barrierFree: boolean;
-  petsAllowed: boolean;
+  features: Record<string, boolean>;
   beschreibung: string | null;
   vermieter: string | null;
   vermieterId: string;
@@ -89,7 +88,7 @@ export async function loadMietobjektDetail(
     availableFrom: m.availableFrom,
     minLeaseMonths: m.minLeaseMonths,
     maxOccupants: m.maxOccupants,
-    ...getMietobjektFeatureValues(m),
+    features: m.features ?? {},
     beschreibung: m.description,
     vermieter: row.organizationName,
     vermieterId: m.organizationId,

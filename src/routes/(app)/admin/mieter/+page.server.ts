@@ -21,8 +21,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       phone: mieter.phone,
       householdSize: mieter.householdSize,
       maxColdRentCents: mieter.maxColdRentCents,
-      needsBarrierFree: mieter.needsBarrierFree,
-      hasPets: mieter.hasPets,
+      features: mieter.features,
       createdAt: mieter.createdAt,
     })
     .from(mieter)
@@ -41,8 +40,8 @@ export const load: PageServerLoad = async ({ locals }) => {
       householdSize: r.householdSize,
       maxColdRent:
         r.maxColdRentCents != null ? r.maxColdRentCents / 100 : undefined,
-      needsBarrierFree: r.needsBarrierFree,
-      hasPets: r.hasPets,
+      features: r.features ?? {},
+      ...(r.features ?? {}),
       bookmarked: bookmarked.has(r.id),
       createdAt: r.createdAt,
     })),

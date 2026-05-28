@@ -6,6 +6,8 @@ import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
 import { mieter } from "$lib/server/db/schema";
 import { getBookmarkedIds, toggleBookmarkAction } from "$lib/server/bookmarks";
+import { loadFilterDefinitions } from "$lib/server/filter-definitions";
+import { sanitizeFeatures } from "$lib/matching-flags";
 import { mieterSchema } from "../new/schema";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -45,8 +47,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       householdSize: row.householdSize,
       maxColdRent:
         row.maxColdRentCents != null ? row.maxColdRentCents / 100 : undefined,
-      needsBarrierFree: row.needsBarrierFree,
-      hasPets: row.hasPets,
+      features: row.features ?? {},
       availableFrom: row.availableFrom ?? "",
       notes: row.notes ?? "",
     },
@@ -74,6 +75,7 @@ export const actions: Actions = {
     if (!form.valid) return fail(400, { form });
 
     const d = form.data;
+    const defs = await loadFilterDefinitions();
     try {
       const [before] = await db
         .select()
@@ -98,8 +100,7 @@ export const actions: Actions = {
           householdSize: d.householdSize,
           maxColdRentCents:
             typeof d.maxColdRent === "number" ? toCents(d.maxColdRent) : null,
-          needsBarrierFree: d.needsBarrierFree,
-          hasPets: d.hasPets,
+          features: sanitizeFeatures(defs, d.features, "mieter"),
           availableFrom: d.availableFrom || null,
           notes: d.notes || null,
         })

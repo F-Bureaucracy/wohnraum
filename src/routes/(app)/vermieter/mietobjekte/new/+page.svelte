@@ -11,5 +11,5 @@ let { data }: { data: PageData } = $props();
 	parent={{ label: "Mietobjekte", href: "/vermieter/mietobjekte" }}
 />
 <div class="mx-auto w-full max-w-5xl p-4 md:p-6">
-	<MietobjektForm {data} />
+	<MietobjektForm {data} filterDefinitions={data.filterDefinitions} />
 </div>

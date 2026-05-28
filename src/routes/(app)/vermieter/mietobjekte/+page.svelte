@@ -35,6 +35,7 @@
 	<MietobjekteView
 		data={data.mietobjekte}
 		basePath="/vermieter/mietobjekte"
+		filterDefinitions={data.filterDefinitions}
 		createHref="/vermieter/mietobjekte/new"
 		createLabel="Neues Mietobjekt"
 	/>

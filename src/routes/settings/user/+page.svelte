@@ -21,7 +21,7 @@ let { data }: { data: PageData } = $props();
 		<h1 class="text-base font-semibold">User</h1>
 	</header>
 	<div class="flex-1 overflow-auto p-6">
-		<div class="max-w-2xl space-y-4">
+		<div class="max-w-5xl divide-y [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
 			<ProfileForm form={data.profileForm} email={data.user.email} />
 			<EmailForm form={data.emailForm} />
 			<PasswordForm form={data.passwordForm} />

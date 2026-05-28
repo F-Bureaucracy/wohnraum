@@ -1,5 +1,4 @@
 import Building2Icon from "@lucide/svelte/icons/building-2";
-import FileTextIcon from "@lucide/svelte/icons/file-text";
 import HandshakeIcon from "@lucide/svelte/icons/handshake";
 import HistoryIcon from "@lucide/svelte/icons/history";
 import KeyIcon from "@lucide/svelte/icons/key";
@@ -13,7 +12,6 @@ export const caseworkerNav: NavItem[] = [
   { title: "Vermieter", url: "/admin/vermieter", icon: HandshakeIcon },
   { title: "Mieter", url: "/admin/mieter", icon: KeyIcon },
   { title: "Mietobjekte", url: "/admin/mietobjekte", icon: Building2Icon },
-  { title: "Dokumente", url: "/admin/dokumente", icon: FileTextIcon },
   { title: "Benutzer", url: "/users", icon: UsersRoundIcon },
 ];
 
