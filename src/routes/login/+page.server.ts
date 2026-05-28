@@ -6,9 +6,17 @@ import { auth } from "$lib/server/auth";
 import type { Actions, PageServerLoad } from "./$types";
 import { loginSchema } from "./schema";
 
+function safeRedirectTo(value: string | null): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
+  return value;
+}
+
 export const load: PageServerLoad = async (event) => {
   if (event.locals.user) {
-    return redirect(302, "/");
+    return redirect(
+      302,
+      safeRedirectTo(event.url.searchParams.get("redirectTo")),
+    );
   }
   return { form: await superValidate(zod4(loginSchema)) };
 };
@@ -38,6 +46,9 @@ export const actions: Actions = {
       return message(form, "Unexpected error", { status: 500 });
     }
 
-    return redirect(302, "/");
+    return redirect(
+      302,
+      safeRedirectTo(event.url.searchParams.get("redirectTo")),
+    );
   },
 };

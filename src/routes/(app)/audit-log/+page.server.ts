@@ -17,7 +17,9 @@ function valueIn<const T extends readonly string[]>(
 }
 
 async function requireAuditAccess(headers: Headers) {
-  const activeMember = await auth.api.getActiveMember({ headers }).catch(() => null);
+  const activeMember = await auth.api
+    .getActiveMember({ headers })
+    .catch(() => null);
   const role = activeMember?.role ?? "";
   if (role !== "owner" && role !== "admin") {
     throw error(403, "Keine Berechtigung, Änderungen einzusehen");

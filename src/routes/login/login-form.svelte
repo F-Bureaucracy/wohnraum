@@ -6,6 +6,16 @@ import { Input } from '$lib/components/ui/input/index.js';
 import { cn } from '$lib/utils.js';
 import { type FormSchema, loginSchema } from './schema.ts';
 import { toast } from 'svelte-sonner';
+import { authClient } from '$lib/auth-client';
+import { Button } from '$lib/components/ui/button/index.js';
+
+async function signInWithFbau() {
+	const { error } = await authClient.signIn.oauth2({
+		providerId: 'fbau',
+		callbackURL: '/',
+	});
+	if (error) toast.error(error.message ?? 'OAuth sign-in failed');
+}
 
 let { data }: { data: { form: SuperValidated<Infer<FormSchema>> } } = $props();
 
@@ -57,6 +67,15 @@ const { form: formData, enhance } = form;
 	</Form.Field>
 
 	<Form.Button type="submit">Login</Form.Button>
+
+	<div class="relative text-center text-sm">
+		<span class="bg-background relative z-10 px-2 text-muted-foreground">Or continue with</span>
+		<div class="absolute inset-0 top-1/2 border-t"></div>
+	</div>
+
+	<Button type="button" variant="outline" onclick={signInWithFbau}>
+		Continue with f-bau
+	</Button>
 
 	<p class="px-6 text-center text-sm text-muted-foreground">
 		Don't have an account?

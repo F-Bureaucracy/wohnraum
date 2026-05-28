@@ -65,7 +65,10 @@ export const load: LayoutServerLoad = async (event) => {
             inviterName: userTable.name,
           })
           .from(invitation)
-          .innerJoin(organization, eq(organization.id, invitation.organizationId))
+          .innerJoin(
+            organization,
+            eq(organization.id, invitation.organizationId),
+          )
           .leftJoin(userTable, eq(userTable.id, invitation.inviterId))
           .where(
             and(
@@ -84,7 +87,10 @@ export const load: LayoutServerLoad = async (event) => {
       type: "incoming-invitation" as const,
     })),
     ...organizationInvitations
-      .filter((item) => !incomingInvitations.some((incoming) => incoming.id === item.id))
+      .filter(
+        (item) =>
+          !incomingInvitations.some((incoming) => incoming.id === item.id),
+      )
       .map((item) => ({
         ...item,
         type: "organization-invitation" as const,

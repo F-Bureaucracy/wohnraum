@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth/minimal";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { sveltekitCookies } from "better-auth/svelte-kit";
-import { organization } from "better-auth/plugins";
+import { organization, genericOAuth } from "better-auth/plugins";
 import { env } from "$env/dynamic/private";
 import { getRequestEvent } from "$app/server";
 import { db } from "$lib/server/db";
@@ -76,6 +76,17 @@ export const auth = betterAuth({
   },
   plugins: [
     auditLog(),
+    genericOAuth({
+      config: [
+        {
+          providerId: "fbau",
+          discoveryUrl: `${env.FBAU_ISSUER}/.well-known/openid-configuration`,
+          clientId: env.FBAU_CLIENT_ID,
+          clientSecret: env.FBAU_CLIENT_SECRET,
+          scopes: ["openid", "profile", "email"],
+        },
+      ],
+    }),
     organization({
       teams: {
         enabled: true,
