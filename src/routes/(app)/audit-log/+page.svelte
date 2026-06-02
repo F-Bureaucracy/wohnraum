@@ -1,331 +1,232 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/page-header.svelte';
-	import { Badge } from '$lib/components/ui/badge/index.js';
-	import Button from '$lib/components/ui/button/button.svelte';
-	import Input from '$lib/components/ui/input/input.svelte';
-	import * as Table from '$lib/components/ui/table/index.js';
-	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
-	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
-	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import PlusIcon from '@lucide/svelte/icons/plus';
+	import PencilIcon from '@lucide/svelte/icons/pencil';
+	import Trash2Icon from '@lucide/svelte/icons/trash-2';
+	import UserPlusIcon from '@lucide/svelte/icons/user-plus';
+	import UserMinusIcon from '@lucide/svelte/icons/user-minus';
+	import BookmarkIcon from '@lucide/svelte/icons/bookmark';
+	import BookmarkXIcon from '@lucide/svelte/icons/bookmark-x';
+	import ArrowRightIcon from '@lucide/svelte/icons/arrow-right';
+	import ActivityIcon from '@lucide/svelte/icons/activity';
+	import HistoryIcon from '@lucide/svelte/icons/history';
+	import type { Component } from 'svelte';
 	import type { PageData } from './$types';
 
+	type Log = PageData['logs'][number];
+	type EntityRef = { label: string; href: string | null };
+
 	let { data }: { data: PageData } = $props();
-	let filterForm: HTMLFormElement;
-	let actionFilterTimeout: ReturnType<typeof setTimeout> | undefined;
-	let pageIndex = $state(0);
-	let pageSize = $state(25);
-	let pageSizeSelection = $derived(String(pageSize));
-	let expandedLogId = $state<string | null>(null);
 
-	const impactLabels: Record<string, string> = {
-		low: 'Niedrig',
-		medium: 'Mittel',
-		high: 'Hoch',
-		critical: 'Kritisch',
-	};
+	let search = $state('');
+	let typeFilter = $state<'all' | 'mietobjekt' | 'mieter' | 'vermieter-note'>('all');
+	let visibleCount = $state(40);
 
-	const impactVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-		low: 'secondary',
-		medium: 'outline',
-		high: 'default',
-		critical: 'destructive',
-	};
+	const typeOptions = [
+		{ value: 'all', label: 'Alle Bereiche' },
+		{ value: 'mietobjekt', label: 'Mietobjekte' },
+		{ value: 'mieter', label: 'Mieter' },
+		{ value: 'vermieter-note', label: 'Notizen' },
+	] as const;
 
-	const statusLabels: Record<string, string> = {
-		success: 'Erfolgreich',
-		failed: 'Fehlgeschlagen',
-	};
-
-	const dateFmt = new Intl.DateTimeFormat('de-DE', {
-		dateStyle: 'medium',
-		timeStyle: 'short',
+	const timeFmt = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' });
+	const dayFmt = new Intl.DateTimeFormat('de-DE', {
+		weekday: 'long',
+		day: 'numeric',
+		month: 'long',
+		year: 'numeric',
 	});
 
-	function formatDate(raw: Date | string) {
-		return dateFmt.format(raw instanceof Date ? raw : new Date(raw));
+	function toDate(raw: Date | string) {
+		return raw instanceof Date ? raw : new Date(raw);
 	}
 
-	function formatJson(value: string | null) {
-		if (!value) return '—';
-		try {
-			return JSON.stringify(JSON.parse(value), null, 2);
-		} catch {
-			return value;
+	function dayKey(d: Date) {
+		return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+	}
+
+	function dayHeading(d: Date) {
+		const today = new Date();
+		const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+		if (dayKey(d) === dayKey(today)) return 'Heute';
+		if (dayKey(d) === dayKey(yesterday)) return 'Gestern';
+		return dayFmt.format(d);
+	}
+
+	// Visual mapping per verb; `tone` drives the icon colour.
+	const verbStyles: Record<string, { icon: Component; tone: string }> = {
+		create: { icon: PlusIcon, tone: 'text-emerald-600 bg-emerald-50' },
+		update: { icon: PencilIcon, tone: 'text-blue-600 bg-blue-50' },
+		delete: { icon: Trash2Icon, tone: 'text-red-600 bg-red-50' },
+		assign: { icon: UserPlusIcon, tone: 'text-emerald-600 bg-emerald-50' },
+		unassign: { icon: UserMinusIcon, tone: 'text-amber-600 bg-amber-50' },
+		reserve: { icon: BookmarkIcon, tone: 'text-violet-600 bg-violet-50' },
+		unreserve: { icon: BookmarkXIcon, tone: 'text-amber-600 bg-amber-50' },
+	};
+	const fallbackStyle = { icon: ActivityIcon, tone: 'text-muted-foreground bg-muted' };
+
+	const nouns: Record<string, string> = {
+		mietobjekt: 'das Mietobjekt',
+		mieter: 'den Mieter',
+		'vermieter-note': 'eine Notiz',
+	};
+	const pasts: Record<string, string> = {
+		create: 'angelegt',
+		update: 'bearbeitet',
+		delete: 'gelöscht',
+		reserve: 'reserviert',
+		unreserve: 'freigegeben',
+	};
+
+	const verbOf = (log: Log) => log.action.split(':')[1] ?? '';
+	const styleFor = (log: Log) => verbStyles[verbOf(log)] ?? fallbackStyle;
+
+	const filtered = $derived(
+		data.logs.filter((log) => {
+			if (typeFilter !== 'all' && log.entityType !== typeFilter) return false;
+			if (search.trim()) {
+				const q = search.trim().toLowerCase();
+				const haystack =
+					`${log.subject?.label ?? ''} ${log.target?.label ?? ''} ${log.actor}`.toLowerCase();
+				if (!haystack.includes(q)) return false;
+			}
+			return true;
+		}),
+	);
+
+	const visible = $derived(filtered.slice(0, visibleCount));
+
+	const groups = $derived.by(() => {
+		const result: { key: string; heading: string; items: Log[] }[] = [];
+		for (const log of visible) {
+			const d = toDate(log.createdAt);
+			const key = dayKey(d);
+			const last = result[result.length - 1];
+			if (last && last.key === key) last.items.push(log);
+			else result.push({ key, heading: dayHeading(d), items: [log] });
 		}
-	}
-
-	function hasDetails(log: PageData['logs'][number]) {
-		return Boolean(log.metadata || log.before || log.after);
-	}
-
-	function toggleExpanded(logId: string) {
-		expandedLogId = expandedLogId === logId ? null : logId;
-	}
-
-	function handleRowKeydown(event: KeyboardEvent, logId: string) {
-		if (event.key !== 'Enter' && event.key !== ' ') return;
-		event.preventDefault();
-		toggleExpanded(logId);
-	}
-
-	function submitFilters() {
-		filterForm.requestSubmit();
-	}
-
-	function submitActionFilter() {
-		if (actionFilterTimeout) clearTimeout(actionFilterTimeout);
-		actionFilterTimeout = setTimeout(submitFilters, 300);
-	}
-
-	const pageCount = $derived(Math.ceil(data.logs.length / pageSize));
-	const pageNumber = $derived(pageCount === 0 ? 0 : pageIndex + 1);
-	const pageStart = $derived(data.logs.length === 0 ? 0 : pageIndex * pageSize + 1);
-	const pageEnd = $derived(Math.min(data.logs.length, (pageIndex + 1) * pageSize));
-	const pagedLogs = $derived(data.logs.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize));
-	const canPreviousPage = $derived(pageIndex > 0);
-	const canNextPage = $derived(pageIndex < pageCount - 1);
-
-	$effect(() => {
-		const lastPageIndex = Math.max(pageCount - 1, 0);
-		if (pageIndex > lastPageIndex) pageIndex = lastPageIndex;
+		return result;
 	});
 
+	// Reset paging whenever the filters change.
+	let lastFilterKey = '';
 	$effect(() => {
-		if (expandedLogId && !pagedLogs.some((log) => log.id === expandedLogId)) {
-			expandedLogId = null;
+		const key = `${search}|${typeFilter}`;
+		if (key !== lastFilterKey) {
+			lastFilterKey = key;
+			visibleCount = 40;
 		}
 	});
 </script>
 
+{#snippet entityRef(ref: EntityRef)}
+	{#if ref.href}
+		<a href={ref.href} class="font-medium underline-offset-2 hover:underline">{ref.label}</a>
+	{:else}
+		<span class="font-medium">„{ref.label}“</span>
+	{/if}
+{/snippet}
+
 <PageHeader title="Änderungen" />
 
-<main class="flex flex-1 flex-col gap-4 p-4 pt-0">
-	<form
-		bind:this={filterForm}
-		method="GET"
-		class="flex flex-col gap-2 rounded-md border bg-background p-3 md:flex-row md:items-end"
-	>
-		<label class="grid gap-1 text-sm md:w-48">
-			<span class="font-medium">Auswirkung</span>
-			<select
-				name="impact"
-				value={data.filters.impact}
-				onchange={submitFilters}
-				class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-			>
-				<option value="">Alle</option>
-				<option value="low">Niedrig</option>
-				<option value="medium">Mittel</option>
-				<option value="high">Hoch</option>
-				<option value="critical">Kritisch</option>
-			</select>
-		</label>
-		<label class="grid gap-1 text-sm md:w-48">
-			<span class="font-medium">Status</span>
-			<select
-				name="status"
-				value={data.filters.status}
-				onchange={submitFilters}
-				class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 rounded-md border px-3 py-1 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-			>
-				<option value="">Alle</option>
-				<option value="success">Erfolgreich</option>
-				<option value="failed">Fehlgeschlagen</option>
-			</select>
-		</label>
-		<label class="grid gap-1 text-sm md:min-w-64 md:flex-1">
-			<span class="font-medium">Aktion</span>
-			<Input
-				name="action"
-				value={data.filters.action}
-				placeholder="Aktion filtern"
-				oninput={submitActionFilter}
-			/>
-		</label>
-		<div class="flex gap-2">
-			<Button href="/audit-log" variant="outline">Zurücksetzen</Button>
-		</div>
-	</form>
-
-	<div class="audit-table-scroll overflow-x-auto rounded-md border">
-		<Table.Root>
-			<Table.Header>
-				<Table.Row>
-					<Table.Head class="w-10"></Table.Head>
-					<Table.Head class="min-w-44">Zeitpunkt</Table.Head>
-					<Table.Head class="min-w-56">Benutzer</Table.Head>
-					<Table.Head class="min-w-36">Objekt</Table.Head>
-					<Table.Head class="min-w-52">Aktion</Table.Head>
-					<Table.Head>Status</Table.Head>
-					<Table.Head>Auswirkung</Table.Head>
-				</Table.Row>
-			</Table.Header>
-			<Table.Body>
-				{#each pagedLogs as log (log.id)}
-					<Table.Row
-						class="cursor-pointer"
-						role="button"
-						tabindex={0}
-						aria-expanded={expandedLogId === log.id}
-						onclick={() => toggleExpanded(log.id)}
-						onkeydown={(event) => handleRowKeydown(event, log.id)}
-					>
-						<Table.Cell>
-							<ChevronDownIcon
-								class={[
-									'size-4 text-muted-foreground transition-transform',
-									expandedLogId === log.id ? 'rotate-180' : '',
-								]}
-								aria-hidden="true"
-							/>
-						</Table.Cell>
-						<Table.Cell>{formatDate(log.createdAt)}</Table.Cell>
-						<Table.Cell>
-							<div class="truncate font-medium">{log.userName ?? log.userEmail ?? 'Unbekannt'}</div>
-							{#if log.userEmail}
-								<div class="truncate text-xs text-muted-foreground">{log.userEmail}</div>
-							{/if}
-						</Table.Cell>
-						<Table.Cell>
-							<div class="truncate">{log.entityType}</div>
-							{#if log.entityId}
-								<div class="truncate text-xs text-muted-foreground">{log.entityId}</div>
-							{/if}
-						</Table.Cell>
-						<Table.Cell class="font-mono text-xs">{log.action}</Table.Cell>
-						<Table.Cell>
-							<Badge variant={log.status === 'failed' ? 'destructive' : 'secondary'}>
-								{statusLabels[log.status] ?? log.status}
-							</Badge>
-						</Table.Cell>
-						<Table.Cell>
-							<Badge variant={impactVariants[log.severity] ?? 'outline'}>
-								{impactLabels[log.severity] ?? log.severity}
-							</Badge>
-						</Table.Cell>
-					</Table.Row>
-					{#if expandedLogId === log.id}
-						<Table.Row class="bg-muted/20 hover:bg-muted/20">
-							<Table.Cell colspan={7} class="whitespace-normal p-4">
-								{#if hasDetails(log)}
-									<div class="grid gap-3">
-										{#if log.metadata}
-											<section class="min-w-0 rounded-md border bg-background p-3">
-												<h3 class="mb-2 text-sm font-medium">Metadaten</h3>
-												<pre class="audit-detail-pre">{formatJson(log.metadata)}</pre>
-											</section>
-										{/if}
-										{#if log.before}
-											<section class="min-w-0 rounded-md border bg-background p-3">
-												<h3 class="mb-2 text-sm font-medium">Vorher</h3>
-												<pre class="audit-detail-pre">{formatJson(log.before)}</pre>
-											</section>
-										{/if}
-										{#if log.after}
-											<section class="min-w-0 rounded-md border bg-background p-3">
-												<h3 class="mb-2 text-sm font-medium">Nachher</h3>
-												<pre class="audit-detail-pre">{formatJson(log.after)}</pre>
-											</section>
-										{/if}
-									</div>
-								{:else}
-									<div class="text-sm text-muted-foreground">Keine Details vorhanden.</div>
-								{/if}
-							</Table.Cell>
-						</Table.Row>
-					{/if}
-				{:else}
-					<Table.Row>
-						<Table.Cell colspan={7} class="h-24 text-center text-muted-foreground">
-							Keine Änderungen gefunden.
-						</Table.Cell>
-					</Table.Row>
-				{/each}
-			</Table.Body>
-		</Table.Root>
-	</div>
-
-	<div class="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-		<div>
-			{#if data.logs.length === 0}
-				Keine Einträge
-			{:else}
-				{pageStart}-{pageEnd} von {data.logs.length} Einträgen
-			{/if}
-		</div>
-		<div class="flex flex-wrap items-center gap-2">
-			<label class="flex items-center gap-2">
-				<span>Zeilen</span>
-				<select
-					bind:value={pageSizeSelection}
-					onchange={() => {
-						pageSize = Number(pageSizeSelection);
-						pageIndex = 0;
-					}}
-					class="border-input bg-background h-8 rounded-md border px-2 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+<main class="flex flex-1 flex-col gap-4 p-4 pt-2">
+	<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+		<Input bind:value={search} placeholder="Nach Name oder Adresse suchen…" class="sm:max-w-sm" />
+		<div class="flex flex-wrap gap-1 rounded-md border p-1">
+			{#each typeOptions as opt (opt.value)}
+				<button
+					type="button"
+					onclick={() => (typeFilter = opt.value)}
+					class="rounded px-2.5 py-1 text-sm transition-colors {typeFilter === opt.value
+						? 'bg-primary text-primary-foreground font-medium'
+						: 'text-muted-foreground hover:text-foreground'}"
 				>
-					<option value="10">10</option>
-					<option value="25">25</option>
-					<option value="50">50</option>
-					<option value="100">100</option>
-				</select>
-			</label>
-			<div class="min-w-20 text-center">
-				Seite {pageNumber} von {Math.max(pageCount, 1)}
-			</div>
-			<Button
-				variant="outline"
-				size="icon-sm"
-				disabled={!canPreviousPage}
-				aria-label="Vorherige Seite"
-				onclick={() => (pageIndex -= 1)}
-			>
-				<ChevronLeftIcon class="size-4" />
-			</Button>
-			<Button
-				variant="outline"
-				size="icon-sm"
-				disabled={!canNextPage}
-				aria-label="Nächste Seite"
-				onclick={() => (pageIndex += 1)}
-			>
-				<ChevronRightIcon class="size-4" />
-			</Button>
+					{opt.label}
+				</button>
+			{/each}
 		</div>
 	</div>
+
+	{#if filtered.length === 0}
+		<div
+			class="text-muted-foreground flex flex-col items-center gap-2 rounded-lg border border-dashed p-12 text-center"
+		>
+			<HistoryIcon class="size-6" />
+			<p class="text-sm">Keine Änderungen gefunden.</p>
+		</div>
+	{:else}
+		{#each groups as group (group.key)}
+			<section>
+				<h2 class="text-muted-foreground mb-2 px-1 text-xs font-medium tracking-wide uppercase">
+					{group.heading}
+				</h2>
+				<ul class="overflow-hidden rounded-lg border">
+					{#each group.items as log (log.id)}
+						{@const style = styleFor(log)}
+						{@const Icon = style.icon}
+						{@const verb = verbOf(log)}
+						<li class="flex items-start gap-3 border-b p-3 last:border-b-0">
+							<div
+								class="flex size-8 shrink-0 items-center justify-center rounded-full {style.tone}"
+							>
+								<Icon class="size-4" />
+							</div>
+							<div class="min-w-0 flex-1">
+								<p class="text-sm leading-snug">
+									<span class="font-medium">{log.actor}</span>
+									{#if verb === 'assign' || verb === 'unassign'}
+										hat
+										{#if log.subject}{@render entityRef(log.subject)}{:else}einen Mieter{/if}
+										{verb === 'assign' ? 'der Wohnung' : 'von der Wohnung'}
+										{#if log.target}{@render entityRef(log.target)}{:else}<span class="font-medium"
+												>(unbekannt)</span
+											>{/if}
+										{verb === 'assign' ? 'zugewiesen' : 'entfernt'}
+									{:else}
+										hat {nouns[log.entityType] ?? 'einen Eintrag'}
+										{#if log.subject}{@render entityRef(log.subject)}{/if}
+										{pasts[verb] ?? ''}
+									{/if}
+									{#if log.status === 'failed'}
+										<span class="text-red-600">(fehlgeschlagen)</span>
+									{/if}
+								</p>
+
+								{#if log.changes.length > 0}
+									<ul class="mt-1.5 flex flex-col gap-1">
+										{#each log.changes as change (change.label)}
+											<li
+												class="text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs"
+											>
+												<span class="text-foreground font-medium">{change.label}:</span>
+												<span class="line-through">{change.from}</span>
+												<ArrowRightIcon class="size-3 shrink-0" />
+												<span class="text-foreground">{change.to}</span>
+											</li>
+										{/each}
+									</ul>
+								{/if}
+							</div>
+							<time
+								class="text-muted-foreground shrink-0 text-xs tabular-nums"
+								datetime={toDate(log.createdAt).toISOString()}
+							>
+								{timeFmt.format(toDate(log.createdAt))}
+							</time>
+						</li>
+					{/each}
+				</ul>
+			</section>
+		{/each}
+
+		{#if filtered.length > visible.length}
+			<div class="flex justify-center pt-1">
+				<Button variant="outline" size="sm" onclick={() => (visibleCount += 40)}>
+					Weitere anzeigen
+				</Button>
+			</div>
+		{/if}
+	{/if}
 </main>
-
-<style>
-	.audit-table-scroll {
-		scrollbar-width: thin;
-		scrollbar-color: var(--color-muted) transparent;
-	}
-
-	.audit-table-scroll::-webkit-scrollbar {
-		height: 10px;
-	}
-
-	.audit-table-scroll::-webkit-scrollbar-track {
-		background: transparent;
-	}
-
-	.audit-table-scroll::-webkit-scrollbar-thumb {
-		background-color: var(--color-muted);
-		border-radius: 9999px;
-	}
-
-	.audit-table-scroll::-webkit-scrollbar-thumb:hover {
-		background-color: var(--color-muted-foreground);
-	}
-
-	.audit-detail-pre {
-		max-height: 24rem;
-		overflow: auto;
-		white-space: pre-wrap;
-		overflow-wrap: anywhere;
-		font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
-		font-size: 0.75rem;
-		line-height: 1.5;
-		color: var(--color-muted-foreground);
-	}
-</style>
