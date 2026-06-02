@@ -134,9 +134,9 @@ export const load: PageServerLoad = async ({ locals }) => {
         mieterDates: mieterRows.map((row) => row.createdAt),
       }),
       recent: mietobjekte.slice(0, 5).map((row) => ({
+        id: row.id,
         title: `${row.street} ${row.houseNumber}`,
         meta: `${row.city} · ${row.rooms} Zimmer · ${row.livingArea} m²`,
-        href: `/admin/mietobjekte/${row.id}`,
       })),
     };
   }
@@ -202,9 +202,9 @@ export const load: PageServerLoad = async ({ locals }) => {
         availableDates: mietobjekte.map((row) => row.availableFrom),
       }),
       recent: mietobjekte.slice(0, 5).map((row) => ({
+        id: row.id,
         title: `${row.street} ${row.houseNumber}`,
         meta: `${row.city} · verfügbar ab ${row.availableFrom}`,
-        href: `/vermieter/mietobjekte/${row.id}`,
       })),
     };
   }

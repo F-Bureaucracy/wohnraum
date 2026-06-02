@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import ArrowUpRightIcon from '@lucide/svelte/icons/arrow-up-right';
 	import { AreaChart } from 'layerchart';
 	import PageHeader from '$lib/components/page-header.svelte';
@@ -67,6 +68,10 @@
 	);
 </script>
 
+{#snippet chartTooltip()}
+	<Chart.Tooltip />
+{/snippet}
+
 <PageHeader title="Dashboard" />
 
 <div class="flex flex-1 flex-col gap-6 p-4 pt-0 md:p-6 md:pt-0">
@@ -102,9 +107,6 @@
 				<Card.Description>{chartDescription}</Card.Description>
 			</Card.Header>
 			<Card.Content>
-				{#snippet chartTooltip()}
-					<Chart.Tooltip />
-				{/snippet}
 				<Chart.Container config={chartConfig} class="h-[18rem] w-full">
 					<AreaChart
 						data={data.chart}
@@ -132,9 +134,13 @@
 			<Card.Content>
 				{#if data.recent.length > 0}
 					<div class="grid gap-2">
-						{#each data.recent as item (item.href)}
+						{#each data.recent as item (item.id)}
 							<a
-								href={item.href}
+								href={resolve(
+									isCompany
+										? (`/vermieter/mietobjekte/${item.id}` as const)
+										: (`/admin/mietobjekte/${item.id}` as const),
+								)}
 								class="border-border hover:bg-muted/60 block rounded-md border p-3 transition-colors"
 							>
 								<div class="flex items-start justify-between gap-3">
