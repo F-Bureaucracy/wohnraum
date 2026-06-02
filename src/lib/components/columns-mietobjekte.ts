@@ -8,6 +8,7 @@ import {
 import { type FilterDefinition, mietobjektDefs } from "$lib/matching-flags";
 import BookmarkButton from "./bookmark-button.svelte";
 import DataTableActions from "./actions.svelte";
+import DataTableSortHeader from "./data-table-sort-header.svelte";
 
 export type Mietobjekt = {
   id: string;
@@ -16,6 +17,8 @@ export type Mietobjekt = {
   flaeche: number;
   kaltmiete: number;
   maxOccupants: number;
+  vermieter?: string | null;
+  vermieterId?: string;
   features: Record<string, boolean>;
   lng?: number;
   lat?: number;
@@ -88,20 +91,26 @@ export function createMietobjekteColumns(
     {
       accessorKey: "adresse",
       header: "Adresse",
-      size: 320,
+      size: 300,
       cell: ({ row }) =>
         linkCell(row.original.adresse, `${basePath}/${row.original.id}`),
     },
     {
-      accessorKey: "zimmer",
-      header: "Zimmer",
-      size: 100,
-      filterFn: "inNumberRange",
-      cell: ({ row }) => plainCell(numberFmt.format(row.original.zimmer)),
+      accessorKey: "vermieter",
+      header: "Vermieter",
+      size: 220,
+      cell: ({ row }) =>
+        row.original.vermieterId
+          ? linkCell(row.original.vermieter ?? "—", `/admin/vermieter/${row.original.vermieterId}`)
+          : truncCell(row.original.vermieter ?? "—"),
     },
     {
       accessorKey: "flaeche",
-      header: "Fläche (m²)",
+      header: ({ column }) =>
+        renderComponent(DataTableSortHeader, {
+          column: column as never,
+          label: "Fläche (m²)",
+        }),
       size: 120,
       filterFn: "inNumberRange",
       cell: ({ row }) =>
@@ -109,16 +118,20 @@ export function createMietobjekteColumns(
     },
     {
       accessorKey: "kaltmiete",
-      header: "Kaltmiete",
+      header: ({ column }) =>
+        renderComponent(DataTableSortHeader, {
+          column: column as never,
+          label: "Kaltmiete",
+        }),
       size: 140,
       filterFn: "inNumberRange",
       cell: ({ row }) => plainCell(currencyFmt.format(row.original.kaltmiete)),
     },
     {
-      accessorKey: "createdAt",
-      header: "Erstellt am",
-      size: 140,
-      cell: ({ row }) => dateCell(row.original.createdAt),
+      accessorKey: "zimmer",
+      enableHiding: false,
+      filterFn: "inNumberRange",
+      meta: { filterOnly: true },
     },
     {
       accessorKey: "maxOccupants",
@@ -171,18 +184,16 @@ function plainCell(value: string) {
   );
 }
 
-function dateCell(raw: Date | string) {
-  const date = raw instanceof Date ? raw : new Date(raw);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  const formatted = `${day}.${month}.${year}`;
+function truncCell(value: string) {
   return renderSnippet(
-    createRawSnippet<[{ formattedDate: string }]>((getArgs) => {
-      const { formattedDate } = getArgs();
-      return { render: () => `<div>${formattedDate}</div>` };
+    createRawSnippet<[{ value: string }]>((getArgs) => {
+      const { value } = getArgs();
+      return {
+        render: () =>
+          `<div class="truncate" title="${escapeAttr(value)}">${escapeText(value)}</div>`,
+      };
     }),
-    { formattedDate: formatted },
+    { value: value ?? "" },
   );
 }
 

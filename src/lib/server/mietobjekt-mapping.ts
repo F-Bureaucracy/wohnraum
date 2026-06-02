@@ -15,6 +15,7 @@ export function mapMietobjektRow(r: Row): Mietobjekt {
     flaeche: r.livingArea,
     kaltmiete: r.coldRentCents / 100,
     maxOccupants: r.maxOccupants,
+    vermieterId: r.organizationId,
     features,
     // Spread feature booleans onto the row so TanStack column filters can read them.
     ...features,

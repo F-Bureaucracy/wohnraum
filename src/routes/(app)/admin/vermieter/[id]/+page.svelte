@@ -10,11 +10,17 @@
 	import MailIcon from '@lucide/svelte/icons/mail';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
+	import HomeIcon from '@lucide/svelte/icons/house';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	const dateFmt = new Intl.DateTimeFormat('de-DE', {
+		day: '2-digit',
+		month: '2-digit',
+		year: 'numeric',
+	});
+	const dateTimeFmt = new Intl.DateTimeFormat('de-DE', {
 		day: '2-digit',
 		month: '2-digit',
 		year: 'numeric',
@@ -26,8 +32,12 @@
 		{ label: 'Name', value: data.vermieter.name },
 		{ label: 'Slug', value: data.vermieter.slug },
 		{ label: 'Mietobjekte', value: String(data.vermieter.anzahlMietobjekte) },
-		{ label: 'Erstellt am', value: dateFmt.format(data.vermieter.createdAt) },
 	]);
+	const meta = $derived(
+		`${data.vermieter.anzahlMietobjekte} ${
+			data.vermieter.anzahlMietobjekte === 1 ? 'Mietobjekt' : 'Mietobjekte'
+		} · ${data.vermieter.slug}`,
+	);
 
 	let newNote = $state('');
 	let submitting = $state(false);
@@ -47,7 +57,19 @@
 
 <PageHeader title={data.vermieter.name} parent={{ label: 'Vermieter', href: '/admin/vermieter' }} />
 
+<div class="flex items-center justify-end gap-2 px-4 pb-2">
+	<Button href={`/admin/mietobjekte?vermieterId=${data.vermieter.id}`} size="sm">
+		<HomeIcon class="size-4" />
+		Mietobjekte anzeigen
+	</Button>
+</div>
+
 <div class="flex flex-1 flex-col gap-4 p-4 pt-0">
+	<div class="space-y-2">
+		<h1 class="text-2xl font-semibold">{data.vermieter.name}</h1>
+		<p class="text-muted-foreground text-sm">{meta}</p>
+	</div>
+
 	<div class="grid gap-4 lg:grid-cols-3">
 		<div class="space-y-4 lg:col-span-2">
 			<Card.Root>
@@ -106,7 +128,7 @@
 										<div class="text-muted-foreground flex items-center gap-2 text-xs">
 											<span class="font-medium text-foreground">{note.authorName}</span>
 											<span>·</span>
-											<span>{dateFmt.format(note.createdAt)}</span>
+											<span>{dateTimeFmt.format(note.createdAt)}</span>
 											{#if note.updatedAt.getTime() - note.createdAt.getTime() > 1000}
 												<span>· bearbeitet</span>
 											{/if}
@@ -207,6 +229,9 @@
 						{/each}
 					{/if}
 				</Card.Content>
+				<Card.Footer class="text-muted-foreground text-xs">
+					Erstellt am {dateFmt.format(data.vermieter.createdAt)}
+				</Card.Footer>
 			</Card.Root>
 		</div>
 	</div>
