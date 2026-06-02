@@ -3,6 +3,7 @@
 	import DeleteButton from '$lib/components/delete-button.svelte';
 	import BookmarkButton from '$lib/components/bookmark-button.svelte';
 	import MieterForm from '../new/mieter-form.svelte';
+	import DetailTable from '$lib/components/detail-table.svelte';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -124,7 +125,7 @@
 			{#if merkmale.length > 0}
 				<div class="flex flex-wrap items-center gap-2">
 					{#each merkmale as merkmal (merkmal)}
-						<Badge variant="outline">{merkmal}</Badge>
+						<Badge variant="outline" class="font-normal">{merkmal}</Badge>
 					{/each}
 				</div>
 			{/if}
@@ -137,13 +138,9 @@
 				<Card.Header>
 					<Card.Title>Stammdaten</Card.Title>
 				</Card.Header>
-				<Card.Content class="grid gap-4 sm:grid-cols-2">
-					{#each stammdaten as row (row.label)}
-						<div>
-							<div class="text-muted-foreground text-xs">{row.label}</div>
-							<div class="text-sm font-medium">{row.value}</div>
-						</div>
-					{/each}
+				<Card.Content class="grid gap-x-10 sm:grid-cols-2">
+					<DetailTable rows={stammdaten.slice(0, 3)} />
+					<DetailTable rows={stammdaten.slice(3)} />
 				</Card.Content>
 			</Card.Root>
 
@@ -164,13 +161,8 @@
 				<Card.Header>
 					<Card.Title>Kontakt</Card.Title>
 				</Card.Header>
-				<Card.Content class="space-y-3">
-					{#each kontakt as row (row.label)}
-						<div>
-							<div class="text-muted-foreground text-xs">{row.label}</div>
-							<div class="text-sm font-medium">{row.value}</div>
-						</div>
-					{/each}
+				<Card.Content>
+					<DetailTable rows={kontakt} />
 				</Card.Content>
 				<Card.Footer class="text-muted-foreground text-xs">
 					Erstellt am {formatDate(m.createdAt)}

@@ -5,7 +5,7 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
-	import BuildingIcon from '@lucide/svelte/icons/building';
+	import DetailTable from '$lib/components/detail-table.svelte';
 	import UserIcon from '@lucide/svelte/icons/user';
 	import MailIcon from '@lucide/svelte/icons/mail';
 	import PencilIcon from '@lucide/svelte/icons/pencil';
@@ -21,6 +21,13 @@
 		hour: '2-digit',
 		minute: '2-digit',
 	});
+
+	const unternehmen = $derived([
+		{ label: 'Name', value: data.vermieter.name },
+		{ label: 'Slug', value: data.vermieter.slug },
+		{ label: 'Mietobjekte', value: String(data.vermieter.anzahlMietobjekte) },
+		{ label: 'Erstellt am', value: dateFmt.format(data.vermieter.createdAt) },
+	]);
 
 	let newNote = $state('');
 	let submitting = $state(false);
@@ -47,43 +54,9 @@
 				<Card.Header>
 					<Card.Title>Unternehmen</Card.Title>
 				</Card.Header>
-				<Card.Content class="grid gap-4 sm:grid-cols-2">
-					<div class="flex items-center gap-3">
-						<div class="bg-muted flex size-9 items-center justify-center rounded-md">
-							<BuildingIcon class="size-4" />
-						</div>
-						<div>
-							<div class="text-muted-foreground text-xs">Name</div>
-							<div class="text-sm font-medium">{data.vermieter.name}</div>
-						</div>
-					</div>
-					<div class="flex items-center gap-3">
-						<div class="bg-muted flex size-9 items-center justify-center rounded-md">
-							<BuildingIcon class="size-4" />
-						</div>
-						<div>
-							<div class="text-muted-foreground text-xs">Slug</div>
-							<div class="text-sm font-medium">{data.vermieter.slug}</div>
-						</div>
-					</div>
-					<div class="flex items-center gap-3">
-						<div class="bg-muted flex size-9 items-center justify-center rounded-md">
-							<BuildingIcon class="size-4" />
-						</div>
-						<div>
-							<div class="text-muted-foreground text-xs">Mietobjekte</div>
-							<div class="text-sm font-medium">{data.vermieter.anzahlMietobjekte}</div>
-						</div>
-					</div>
-					<div class="flex items-center gap-3">
-						<div class="bg-muted flex size-9 items-center justify-center rounded-md">
-							<BuildingIcon class="size-4" />
-						</div>
-						<div>
-							<div class="text-muted-foreground text-xs">Erstellt am</div>
-							<div class="text-sm font-medium">{dateFmt.format(data.vermieter.createdAt)}</div>
-						</div>
-					</div>
+				<Card.Content class="grid gap-x-10 sm:grid-cols-2">
+					<DetailTable rows={unternehmen.slice(0, 2)} />
+					<DetailTable rows={unternehmen.slice(2)} />
 				</Card.Content>
 			</Card.Root>
 
