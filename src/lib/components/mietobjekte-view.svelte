@@ -20,6 +20,7 @@
 		createHref,
 		createLabel,
 		bookmarkAction,
+		showVermieterColumn = true,
 		filters,
 		initialColumnFilters,
 	}: {
@@ -29,6 +30,7 @@
 		createHref?: string;
 		createLabel?: string;
 		bookmarkAction?: string;
+		showVermieterColumn?: boolean;
 		filters?: TableFilter[];
 		initialColumnFilters?: ColumnFiltersState;
 	} = $props();
@@ -44,7 +46,10 @@
 	);
 
 	const columns = $derived(
-		createMietobjekteColumns(basePath, filterDefinitions, { bookmarkAction }),
+		createMietobjekteColumns(basePath, filterDefinitions, {
+			bookmarkAction,
+			showVermieter: showVermieterColumn,
+		}),
 	);
 	let activePopup: string | null = $state(null);
 	let map = $state<maplibregl.Map>();

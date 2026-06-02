@@ -39,7 +39,7 @@ const numberFmt = new Intl.NumberFormat("de-DE");
 export function createMietobjekteColumns(
   basePath: string,
   defs: FilterDefinition[],
-  opts: { bookmarkAction?: string } = {},
+  opts: { bookmarkAction?: string; showVermieter?: boolean } = {},
 ): ColumnDef<Mietobjekt>[] {
   const actionProps = {
     entitySingular: "Mietobjekt",
@@ -49,6 +49,7 @@ export function createMietobjekteColumns(
     editAction: `${basePath}?/updateMietobjekt`,
   };
   const bookmarkAction = opts.bookmarkAction;
+  const showVermieter = opts.showVermieter ?? true;
   return [
     {
       id: "select",
@@ -95,15 +96,19 @@ export function createMietobjekteColumns(
       cell: ({ row }) =>
         linkCell(row.original.adresse, `${basePath}/${row.original.id}`),
     },
-    {
-      accessorKey: "vermieter",
-      header: "Vermieter",
-      size: 220,
-      cell: ({ row }) =>
-        row.original.vermieterId
-          ? linkCell(row.original.vermieter ?? "—", `/admin/vermieter/${row.original.vermieterId}`)
-          : truncCell(row.original.vermieter ?? "—"),
-    },
+    ...(showVermieter
+      ? [
+          {
+            accessorKey: "vermieter",
+            header: "Vermieter",
+            size: 220,
+            cell: ({ row }) =>
+              row.original.vermieterId
+                ? linkCell(row.original.vermieter ?? "—", `/admin/vermieter/${row.original.vermieterId}`)
+                : truncCell(row.original.vermieter ?? "—"),
+          } satisfies ColumnDef<Mietobjekt>,
+        ]
+      : []),
     {
       accessorKey: "flaeche",
       header: ({ column }) =>

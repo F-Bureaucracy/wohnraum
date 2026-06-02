@@ -38,5 +38,6 @@
 		filterDefinitions={data.filterDefinitions}
 		createHref="/vermieter/mietobjekte/new"
 		createLabel="Neues Mietobjekt"
+		showVermieterColumn={false}
 	/>
 {/if}

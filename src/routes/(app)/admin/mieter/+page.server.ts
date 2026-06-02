@@ -1,7 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { error, redirect } from "@sveltejs/kit";
 import { db } from "$lib/server/db";
-import { mieter } from "$lib/server/db/schema";
+import { mieter, mietobjekt } from "$lib/server/db/schema";
 import { getBookmarkedIds, toggleBookmarkAction } from "$lib/server/bookmarks";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -23,8 +23,13 @@ export const load: PageServerLoad = async ({ locals }) => {
       maxColdRentCents: mieter.maxColdRentCents,
       features: mieter.features,
       createdAt: mieter.createdAt,
+      mietobjektStreet: mietobjekt.street,
+      mietobjektHouseNumber: mietobjekt.houseNumber,
+      mietobjektPostalCode: mietobjekt.postalCode,
+      mietobjektCity: mietobjekt.city,
     })
     .from(mieter)
+    .leftJoin(mietobjekt, eq(mietobjekt.id, mieter.mietobjektId))
     .where(eq(mieter.organizationId, activeOrg.id))
     .orderBy(desc(mieter.createdAt));
 
@@ -36,7 +41,13 @@ export const load: PageServerLoad = async ({ locals }) => {
       name: `${r.firstName} ${r.lastName}`,
       email: r.email ?? "",
       telefon: r.phone ?? "",
-      mietobjekt: "",
+      mietobjekt:
+        r.mietobjektStreet &&
+        r.mietobjektHouseNumber &&
+        r.mietobjektPostalCode &&
+        r.mietobjektCity
+          ? `${r.mietobjektStreet} ${r.mietobjektHouseNumber}, ${r.mietobjektPostalCode} ${r.mietobjektCity}`
+          : "—",
       householdSize: r.householdSize,
       maxColdRent:
         r.maxColdRentCents != null ? r.maxColdRentCents / 100 : undefined,
