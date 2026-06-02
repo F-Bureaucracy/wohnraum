@@ -126,13 +126,15 @@ export const mieter = pgTable("mieter", {
     .notNull(),
 });
 
-export const vermieterNote = pgTable("vermieter_note", {
+// Threaded notes attached to any entity (e.g. "vermieter", "mieter"), keyed
+// polymorphically by entityType + entityId like `bookmark`. Multiple admins can
+// add notes; each can only edit/delete their own.
+export const note = pgTable("note", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  organizationId: text("organization_id")
-    .notNull()
-    .references(() => organization.id, { onDelete: "cascade" }),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
   authorId: text("author_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),

@@ -1,10 +1,10 @@
 import { error, redirect } from "@sveltejs/kit";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { fail, message, superValidate } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
-import { mieter } from "$lib/server/db/schema";
+import { mieter, note, user } from "$lib/server/db/schema";
 import { getBookmarkedIds, toggleBookmarkAction } from "$lib/server/bookmarks";
 import { loadFilterDefinitions } from "$lib/server/filter-definitions";
 import { sanitizeFeatures } from "$lib/matching-flags";
@@ -58,11 +58,158 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     params.id,
   );
 
-  return { mieter: row, form, bookmarked };
+  const notes = await db
+    .select({
+      id: note.id,
+      body: note.body,
+      createdAt: note.createdAt,
+      updatedAt: note.updatedAt,
+      authorId: note.authorId,
+      authorName: user.name,
+    })
+    .from(note)
+    .innerJoin(user, eq(user.id, note.authorId))
+    .where(and(eq(note.entityType, "mieter"), eq(note.entityId, params.id)))
+    .orderBy(desc(note.createdAt));
+
+  return {
+    mieter: row,
+    form,
+    bookmarked,
+    notes,
+    currentUserId: locals.user.id,
+  };
 };
 
 export const actions: Actions = {
   toggleBookmark: toggleBookmarkAction,
+
+  createNote: async (event) => {
+    const { request, params, locals } = event;
+    if (!locals.user) throw redirect(302, "/login");
+    const activeOrg = locals.activeOrganization;
+    if (activeOrg?.orgType !== "administration") {
+      throw error(403, "Nur Administration");
+    }
+
+    const [row] = await db
+      .select({ id: mieter.id })
+      .from(mieter)
+      .where(
+        and(eq(mieter.id, params.id), eq(mieter.organizationId, activeOrg.id)),
+      )
+      .limit(1);
+    if (!row) throw error(404, "Mieter nicht gefunden");
+
+    const data = await request.formData();
+    const body = (data.get("body") ?? "").toString().trim();
+    if (!body) return fail(400, { message: "Notiz darf nicht leer sein" });
+
+    const [created] = await db
+      .insert(note)
+      .values({
+        entityType: "mieter",
+        entityId: params.id,
+        authorId: locals.user.id,
+        body,
+      })
+      .returning();
+
+    await writeAppAuditLog(event, {
+      action: "mieter-note:create",
+      entityType: "mieter-note",
+      entityId: created.id,
+      severity: "low",
+      after: created,
+    });
+    return { success: true };
+  },
+
+  updateNote: async (event) => {
+    const { request, params, locals } = event;
+    if (!locals.user) throw redirect(302, "/login");
+    if (locals.activeOrganization?.orgType !== "administration") {
+      throw error(403, "Nur Administration");
+    }
+    const data = await request.formData();
+    const noteId = (data.get("noteId") ?? "").toString();
+    const body = (data.get("body") ?? "").toString().trim();
+    if (!noteId || !body) return fail(400, { message: "Ungültige Eingabe" });
+
+    const [before] = await db
+      .select()
+      .from(note)
+      .where(
+        and(
+          eq(note.id, noteId),
+          eq(note.entityType, "mieter"),
+          eq(note.entityId, params.id),
+          eq(note.authorId, locals.user.id),
+        ),
+      )
+      .limit(1);
+
+    const result = await db
+      .update(note)
+      .set({ body })
+      .where(
+        and(
+          eq(note.id, noteId),
+          eq(note.entityType, "mieter"),
+          eq(note.entityId, params.id),
+          eq(note.authorId, locals.user.id),
+        ),
+      )
+      .returning();
+
+    if (result.length === 0) return fail(403, { message: "Nicht erlaubt" });
+
+    await writeAppAuditLog(event, {
+      action: "mieter-note:update",
+      entityType: "mieter-note",
+      entityId: result[0].id,
+      severity: "low",
+      before,
+      after: result[0],
+    });
+
+    return { success: true };
+  },
+
+  deleteNote: async (event) => {
+    const { request, params, locals } = event;
+    if (!locals.user) throw redirect(302, "/login");
+    if (locals.activeOrganization?.orgType !== "administration") {
+      throw error(403, "Nur Administration");
+    }
+    const data = await request.formData();
+    const noteId = (data.get("noteId") ?? "").toString();
+    if (!noteId) return fail(400, { message: "Ungültige Eingabe" });
+
+    const result = await db
+      .delete(note)
+      .where(
+        and(
+          eq(note.id, noteId),
+          eq(note.entityType, "mieter"),
+          eq(note.entityId, params.id),
+          eq(note.authorId, locals.user.id),
+        ),
+      )
+      .returning();
+
+    if (result.length === 0) return fail(403, { message: "Nicht erlaubt" });
+
+    await writeAppAuditLog(event, {
+      action: "mieter-note:delete",
+      entityType: "mieter-note",
+      entityId: result[0].id,
+      severity: "medium",
+      before: result[0],
+    });
+
+    return { success: true };
+  },
 
   updateMieter: async (event) => {
     if (!event.locals.user) throw redirect(302, "/login");
@@ -153,6 +300,13 @@ export const actions: Actions = {
       .returning();
 
     if (result.length === 0) throw error(404, "Mieter nicht gefunden");
+
+    // Polymorphic notes have no DB cascade, so remove them explicitly.
+    await db
+      .delete(note)
+      .where(
+        and(eq(note.entityType, "mieter"), eq(note.entityId, event.params.id)),
+      );
 
     await writeAppAuditLog(event, {
       action: "mieter:delete",

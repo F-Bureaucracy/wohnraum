@@ -5,9 +5,9 @@ import { db } from "$lib/server/db";
 import {
   member,
   mietobjekt,
+  note,
   organization,
   user,
-  vermieterNote,
 } from "$lib/server/db/schema";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -43,17 +43,17 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
   const notes = await db
     .select({
-      id: vermieterNote.id,
-      body: vermieterNote.body,
-      createdAt: vermieterNote.createdAt,
-      updatedAt: vermieterNote.updatedAt,
-      authorId: vermieterNote.authorId,
+      id: note.id,
+      body: note.body,
+      createdAt: note.createdAt,
+      updatedAt: note.updatedAt,
+      authorId: note.authorId,
       authorName: user.name,
     })
-    .from(vermieterNote)
-    .innerJoin(user, eq(user.id, vermieterNote.authorId))
-    .where(eq(vermieterNote.organizationId, params.id))
-    .orderBy(desc(vermieterNote.createdAt));
+    .from(note)
+    .innerJoin(user, eq(user.id, note.authorId))
+    .where(and(eq(note.entityType, "vermieter"), eq(note.entityId, params.id)))
+    .orderBy(desc(note.createdAt));
 
   return {
     vermieter: org,
@@ -72,9 +72,10 @@ export const actions: Actions = {
     if (!body) return fail(400, { message: "Notiz darf nicht leer sein" });
 
     const [created] = await db
-      .insert(vermieterNote)
+      .insert(note)
       .values({
-        organizationId: params.id,
+        entityType: "vermieter",
+        entityId: params.id,
         authorId: locals.user.id,
         body,
       })
@@ -101,24 +102,26 @@ export const actions: Actions = {
 
     const [before] = await db
       .select()
-      .from(vermieterNote)
+      .from(note)
       .where(
         and(
-          eq(vermieterNote.id, noteId),
-          eq(vermieterNote.organizationId, params.id),
-          eq(vermieterNote.authorId, locals.user.id),
+          eq(note.id, noteId),
+          eq(note.entityType, "vermieter"),
+          eq(note.entityId, params.id),
+          eq(note.authorId, locals.user.id),
         ),
       )
       .limit(1);
 
     const result = await db
-      .update(vermieterNote)
+      .update(note)
       .set({ body })
       .where(
         and(
-          eq(vermieterNote.id, noteId),
-          eq(vermieterNote.organizationId, params.id),
-          eq(vermieterNote.authorId, locals.user.id),
+          eq(note.id, noteId),
+          eq(note.entityType, "vermieter"),
+          eq(note.entityId, params.id),
+          eq(note.authorId, locals.user.id),
         ),
       )
       .returning();
@@ -146,12 +149,13 @@ export const actions: Actions = {
     if (!noteId) return fail(400, { message: "Ungültige Eingabe" });
 
     const result = await db
-      .delete(vermieterNote)
+      .delete(note)
       .where(
         and(
-          eq(vermieterNote.id, noteId),
-          eq(vermieterNote.organizationId, params.id),
-          eq(vermieterNote.authorId, locals.user.id),
+          eq(note.id, noteId),
+          eq(note.entityType, "vermieter"),
+          eq(note.entityId, params.id),
+          eq(note.authorId, locals.user.id),
         ),
       )
       .returning();

@@ -21,14 +21,17 @@
 	let { data }: { data: PageData } = $props();
 
 	let search = $state('');
-	let typeFilter = $state<'all' | 'mietobjekt' | 'mieter' | 'vermieter-note'>('all');
+	let typeFilter = $state<'all' | 'mietobjekt' | 'mieter' | 'vermieter-note' | 'mieter-note'>(
+		'all'
+	);
 	let visibleCount = $state(40);
 
 	const typeOptions = [
 		{ value: 'all', label: 'Alle Bereiche' },
 		{ value: 'mietobjekt', label: 'Mietobjekte' },
 		{ value: 'mieter', label: 'Mieter' },
-		{ value: 'vermieter-note', label: 'Notizen' },
+		{ value: 'vermieter-note', label: 'Vermieter-Notizen' },
+		{ value: 'mieter-note', label: 'Mieter-Notizen' },
 	] as const;
 
 	const timeFmt = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' });
@@ -71,6 +74,7 @@
 		mietobjekt: 'das Mietobjekt',
 		mieter: 'den Mieter',
 		'vermieter-note': 'eine Notiz',
+		'mieter-note': 'eine Notiz',
 	};
 	const pasts: Record<string, string> = {
 		create: 'angelegt',

@@ -103,6 +103,7 @@ const fieldsByEntity: Record<string, Record<string, FieldDef>> = {
   mietobjekt: mietobjektFields,
   mieter: mieterFields,
   "vermieter-note": noteFields,
+  "mieter-note": noteFields,
 };
 
 // Bookkeeping / noise columns that should never appear as a "change".
