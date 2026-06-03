@@ -53,9 +53,52 @@
 	);
 	let activePopup: string | null = $state(null);
 	let map = $state<maplibregl.Map>();
+	let fittedGeoKey = $state('');
+	const resolveDynamicHref = resolve as unknown as (href: string) => string;
+
+	const activeObj = $derived(activePopup ? geo.find((obj) => obj.id === activePopup) : undefined);
+
+	function openPopup(event: MouseEvent, id: string) {
+		event.preventDefault();
+		event.stopPropagation();
+		activePopup = id;
+	}
+
+	function closestPointId(point: maplibregl.PointLike) {
+		if (!map) return null;
+		const clickPoint = maplibregl.Point.convert(point);
+		let closest: { id: string; distance: number } | null = null;
+
+		for (const obj of geo) {
+			const markerPoint = map.project([obj.lng, obj.lat]);
+			const distance = clickPoint.dist(markerPoint);
+			if (distance <= 28 && (!closest || distance < closest.distance)) {
+				closest = { id: obj.id, distance };
+			}
+		}
+
+		return closest?.id ?? null;
+	}
+
+	$effect(() => {
+		if (!map) return;
+
+		function handleMapClick(event: maplibregl.MapMouseEvent) {
+			const id = closestPointId(event.point);
+			if (id) activePopup = id;
+		}
+
+		map.on('click', handleMapClick);
+		return () => {
+			map?.off('click', handleMapClick);
+		};
+	});
 
 	$effect(() => {
 		if (!map || geo.length === 0) return;
+		const geoKey = geo.map((obj) => obj.id).join('|');
+		if (geoKey === fittedGeoKey) return;
+		fittedGeoKey = geoKey;
 		if (geo.length === 1) {
 			map.jumpTo({ center: { lng: geo[0].lng, lat: geo[0].lat }, zoom: 14 });
 			return;
@@ -103,29 +146,68 @@
 			zoom={12}
 		>
 			{#each geo as obj (obj.id)}
-				<Marker lnglat={{ lng: obj.lng, lat: obj.lat }} onclick={() => (activePopup = obj.id)}>
-					{#if activePopup === obj.id}
-						<Popup offset={24} onclose={() => (activePopup = null)}>
-							<div class="space-y-2 text-sm">
-								<div class="font-medium">{obj.adresse}</div>
-								<div class="text-muted-foreground">
-									{obj.zimmer} Zi · {obj.flaeche} m² · {obj.kaltmiete.toLocaleString('de-DE', {
-										style: 'currency',
-										currency: 'EUR',
-									})}
-								</div>
-								<a
-									href={resolve(`${basePath}/${obj.id}`)}
-									class={buttonVariants({ variant: 'outline', size: 'sm' })}
-									data-sveltekit-preload-data
-								>
-									Details
-								</a>
-							</div>
-						</Popup>
-					{/if}
+				<Marker lnglat={{ lng: obj.lng, lat: obj.lat }}>
+					{#snippet content()}
+						<button
+							type="button"
+							class="map-marker"
+							aria-label={`Details zu ${obj.adresse} anzeigen`}
+							onclick={(event) => openPopup(event, obj.id)}
+						></button>
+					{/snippet}
 				</Marker>
 			{/each}
+
+			{#if activeObj}
+				<Popup lnglat={[activeObj.lng, activeObj.lat]} offset={16} onclose={() => (activePopup = null)}>
+					<div class="space-y-2 text-sm">
+						<div class="font-medium">{activeObj.adresse}</div>
+						<div class="text-muted-foreground">
+							{activeObj.zimmer} Zi · {activeObj.flaeche} m² · {activeObj.kaltmiete.toLocaleString(
+								'de-DE',
+								{
+									style: 'currency',
+									currency: 'EUR',
+								},
+							)}
+						</div>
+						<!-- eslint-disable svelte/no-navigation-without-resolve -->
+						<a
+							href={resolveDynamicHref(`${basePath}/${activeObj.id}`)}
+							class={buttonVariants({ variant: 'outline', size: 'sm' })}
+							data-sveltekit-preload-data
+						>
+							Details
+						</a>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
+					</div>
+				</Popup>
+			{/if}
 		</MapLibre>
 	</div>
 </div>
+
+<style>
+	:global(.maplibregl-marker) {
+		pointer-events: auto;
+		z-index: 3;
+	}
+
+	.map-marker {
+		display: block;
+		width: 18px;
+		height: 18px;
+		cursor: pointer;
+		border: 2px solid #ffffff;
+		border-radius: 9999px;
+		background: #008b7d;
+		box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
+	}
+
+	.map-marker:hover,
+	.map-marker:focus-visible {
+		background: #006f65;
+		outline: 2px solid #0f766e;
+		outline-offset: 2px;
+	}
+</style>

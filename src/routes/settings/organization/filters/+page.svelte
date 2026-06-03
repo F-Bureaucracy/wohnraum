@@ -149,7 +149,11 @@ function openEdit(f: PageData['filters'][number]) {
 				<Form.FieldErrors />
 			</Form.Field>
 
-			<Form.Field {form} name="appliesToMietobjekt" class="flex items-center justify-between gap-4">
+			<Form.Field
+				{form}
+				name="appliesToMietobjekt"
+				class="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2"
+			>
 				<Form.Control>
 					{#snippet children({ props })}
 						<div class="space-y-0.5">
@@ -159,10 +163,14 @@ function openEdit(f: PageData['filters'][number]) {
 						<Switch {...props} bind:checked={$formData.appliesToMietobjekt} />
 					{/snippet}
 				</Form.Control>
-				<Form.FieldErrors />
+				<Form.FieldErrors class="col-span-2" />
 			</Form.Field>
 
-			<Form.Field {form} name="appliesToMieter" class="flex items-center justify-between gap-4">
+			<Form.Field
+				{form}
+				name="appliesToMieter"
+				class="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2"
+			>
 				<Form.Control>
 					{#snippet children({ props })}
 						<div class="space-y-0.5">
