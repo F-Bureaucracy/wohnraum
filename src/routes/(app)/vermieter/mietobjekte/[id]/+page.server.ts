@@ -6,6 +6,11 @@ import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
 import { mietobjekt } from "$lib/server/db/schema";
 import { geocodeAddress } from "$lib/server/geocode";
+import {
+  deleteMietobjektImages,
+  loadMietobjektImages,
+  replaceMietobjektImages,
+} from "$lib/server/mietobjekt-images";
 import { loadMietobjektDetail } from "$lib/server/mietobjekt-mapping";
 import { loadFilterDefinitions } from "$lib/server/filter-definitions";
 import { sanitizeFeatures } from "$lib/matching-flags";
@@ -28,6 +33,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     organizationId: orgId,
   });
 
+  const images = await loadMietobjektImages(params.id);
+  const formImages = images.map((image) => ({
+    id: image.id,
+    fileName: image.fileName,
+    mimeType: image.mimeType ?? undefined,
+    size: image.size ?? undefined,
+    storageKey: image.storageKey,
+  }));
+
   const form = await superValidate(
     {
       organizationId: orgId,
@@ -49,12 +63,13 @@ export const load: PageServerLoad = async ({ params, locals }) => {
       maxOccupants: detail.maxOccupants,
       features: detail.features,
       description: detail.beschreibung ?? "",
+      images: formImages,
     },
     zod4(mietobjektSchema),
   );
 
   return {
-    mietobjekt: detail,
+    mietobjekt: { ...detail, images },
     form,
     organizations: [{ id: orgId, name: detail.vermieter ?? "" }],
   };
@@ -156,6 +171,8 @@ export const actions: Actions = {
         before: existing,
         after: result[0],
       });
+
+      await replaceMietobjektImages(result[0].id, d.images);
     } catch (err) {
       console.error("[mietobjekt/edit] update failed", err);
       return message(form, "Speichern fehlgeschlagen", { status: 500 });
@@ -167,6 +184,8 @@ export const actions: Actions = {
   deleteMietobjekt: async (event) => {
     const orgId = event.locals.activeOrganization?.id;
     if (!orgId) throw error(403, "Keine aktive Organisation");
+
+    await deleteMietobjektImages([event.params.id]);
 
     const result = await db
       .delete(mietobjekt)

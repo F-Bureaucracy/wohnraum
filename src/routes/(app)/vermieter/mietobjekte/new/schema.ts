@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const mietobjektImageSchema = z.object({
+  id: z.string().optional(),
+  fileName: z.string().min(1),
+  mimeType: z.string().optional(),
+  size: z.number().int().nonnegative().optional(),
+  storageKey: z.string().min(1),
+});
+
 export const mietobjektSchema = z.object({
   organizationId: z.string().min(1, "Organisation erforderlich"),
 
@@ -28,6 +36,7 @@ export const mietobjektSchema = z.object({
   features: z.record(z.string(), z.boolean()).default({}),
 
   description: z.string().optional(),
+  images: z.array(mietobjektImageSchema).default([]),
 });
 
 export type FormSchema = typeof mietobjektSchema;

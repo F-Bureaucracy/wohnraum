@@ -4,6 +4,7 @@ import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
 import { mietobjekt } from "$lib/server/db/schema";
 import { mapMietobjektRow } from "$lib/server/mietobjekt-mapping";
+import { deleteMietobjektImages } from "$lib/server/mietobjekt-images";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async (event) => {
@@ -30,6 +31,8 @@ export const actions: Actions = {
       .map((v) => v.toString())
       .filter(Boolean);
     if (ids.length === 0) return fail(400, { message: "Keine Auswahl" });
+
+    await deleteMietobjektImages(ids);
 
     const deleted = await db
       .delete(mietobjekt)

@@ -6,6 +6,7 @@ import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
 import { mietobjekt } from "$lib/server/db/schema";
 import { geocodeAddress } from "$lib/server/geocode";
+import { replaceMietobjektImages } from "$lib/server/mietobjekt-images";
 import { loadFilterDefinitions } from "$lib/server/filter-definitions";
 import { sanitizeFeatures } from "$lib/matching-flags";
 import type { Actions, PageServerLoad } from "./$types";
@@ -97,6 +98,8 @@ export const actions: Actions = {
         },
         after: created,
       });
+
+      await replaceMietobjektImages(created.id, d.images);
     } catch (err) {
       console.error("[mietobjekt/new] insert failed", err);
       return message(form, "Speichern fehlgeschlagen", { status: 500 });

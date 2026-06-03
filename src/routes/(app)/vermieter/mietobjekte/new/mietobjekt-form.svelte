@@ -5,6 +5,7 @@ import { type Infer, type SuperValidated, superForm } from "sveltekit-superforms
 import { zod4Client } from "sveltekit-superforms/adapters";
 import * as Form from "$lib/components/ui/form/index.js";
 import * as Select from "$lib/components/ui/select/index.js";
+import { Button } from "$lib/components/ui/button/index.js";
 import { Input } from "$lib/components/ui/input/index.js";
 import { Textarea } from "$lib/components/ui/textarea/index.js";
 import { Checkbox } from "$lib/components/ui/checkbox/index.js";
@@ -64,6 +65,7 @@ const steps: StepperStep[] = [
 	{ id: "kosten", label: "Kosten" },
 	{ id: "verfuegbarkeit", label: "Verfügbarkeit" },
 	{ id: "eignung", label: "Eignung" },
+	{ id: "bilder", label: "Bilder" },
 	{ id: "beschreibung", label: "Beschreibung" },
 ];
 
@@ -74,6 +76,8 @@ let addressSearchLoading = $state(false);
 let selectedSuggestionIndex = $state(0);
 let addressSearchRequest = 0;
 let selectedAddressQuery = $state("");
+let imageInput: HTMLInputElement;
+let imageUploading = $state(0);
 
 type AddressSuggestion = {
 	id: string;
@@ -82,6 +86,14 @@ type AddressSuggestion = {
 	houseNumber: string;
 	postalCode: string;
 	city: string;
+};
+
+type MietobjektImage = {
+	id?: string;
+	fileName: string;
+	mimeType?: string;
+	size?: number;
+	storageKey: string;
 };
 
 onMount(() => {
@@ -184,6 +196,73 @@ function handleAddressKeydown(event: KeyboardEvent) {
 	} else if (event.key === "Escape") {
 		addressSearchOpen = false;
 	}
+}
+
+function imageUrl(image: MietobjektImage) {
+	return image.id ? resolve(`/api/mietobjekt-images/${image.id}`) : "";
+}
+
+function formatImageSize(bytes?: number) {
+	if (!bytes) return "";
+	if (bytes < 1024) return `${bytes} B`;
+	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+	return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+async function uploadImage(file: File) {
+	const signRes = await fetch(resolve("/api/s3/sign"), {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ filename: file.name, contentType: file.type }),
+	});
+	if (!signRes.ok) throw new Error("Upload konnte nicht vorbereitet werden");
+
+	const { method, url, key } = (await signRes.json()) as {
+		method: string;
+		url: string;
+		key: string;
+	};
+
+	const putRes = await fetch(url, {
+		method,
+		headers: { "Content-Type": file.type || "application/octet-stream" },
+		body: file,
+	});
+	if (!putRes.ok) throw new Error(`Upload fehlgeschlagen: ${file.name}`);
+
+	$formData.images = [
+		...($formData.images ?? []),
+		{
+			fileName: file.name,
+			mimeType: file.type || undefined,
+			size: file.size,
+			storageKey: key,
+		},
+	];
+}
+
+async function onImagesChosen(event: Event) {
+	const target = event.currentTarget as HTMLInputElement;
+	const files = Array.from(target.files ?? []).filter((file) => file.type.startsWith("image/"));
+	if (files.length === 0) return;
+
+	imageUploading += files.length;
+	await Promise.all(
+		files.map(async (file) => {
+			try {
+				await uploadImage(file);
+			} catch (err) {
+				toast.error(err instanceof Error ? err.message : "Upload fehlgeschlagen");
+			} finally {
+				imageUploading -= 1;
+			}
+		}),
+	);
+	target.value = "";
+}
+
+function removeImage(index: number) {
+	$formData.images = ($formData.images ?? []).filter((_, i) => i !== index);
 }
 </script>
 
@@ -527,6 +606,73 @@ function handleAddressKeydown(event: KeyboardEvent) {
 							</label>
 						{/each}
 					</div>
+				{/if}
+			</div>
+		</section>
+
+		<section id="bilder" class="bg-card scroll-mt-6 rounded-lg border p-6">
+			<header class="mb-4">
+				<h2 class="text-base font-semibold">Bilder</h2>
+				<p class="text-muted-foreground text-sm">
+					Fügen Sie Fotos der Wohnung hinzu.
+				</p>
+			</header>
+
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-wrap items-center gap-3">
+					<input
+						bind:this={imageInput}
+						type="file"
+						accept="image/*"
+						multiple
+						class="sr-only"
+						onchange={onImagesChosen}
+					/>
+					<Button type="button" variant="outline" onclick={() => imageInput.click()}>
+						Bilder auswählen
+					</Button>
+					{#if imageUploading > 0}
+						<span class="text-muted-foreground text-sm">
+							{imageUploading} {imageUploading === 1 ? "Bild" : "Bilder"} werden hochgeladen…
+						</span>
+					{/if}
+				</div>
+
+				{#if ($formData.images ?? []).length > 0}
+					<ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+						{#each $formData.images ?? [] as image, i (image.storageKey)}
+							<li class="overflow-hidden rounded-md border">
+								{#if image.id}
+									<img
+										src={imageUrl(image)}
+										alt={image.fileName}
+										class="aspect-[4/3] w-full object-cover"
+									/>
+								{:else}
+									<div class="bg-muted flex aspect-[4/3] items-center justify-center text-sm text-muted-foreground">
+										Hochgeladen
+									</div>
+								{/if}
+								<div class="flex items-start justify-between gap-2 p-3">
+									<div class="min-w-0">
+										<div class="truncate text-sm font-medium">{image.fileName}</div>
+										{#if formatImageSize(image.size)}
+											<div class="text-muted-foreground text-xs">{formatImageSize(image.size)}</div>
+										{/if}
+									</div>
+									<button
+										type="button"
+										class="text-muted-foreground hover:text-destructive text-sm"
+										onclick={() => removeImage(i)}
+									>
+										Entfernen
+									</button>
+								</div>
+							</li>
+						{/each}
+					</ul>
+				{:else}
+					<p class="text-muted-foreground text-sm">Noch keine Bilder hinzugefügt.</p>
 				{/if}
 			</div>
 		</section>

@@ -7,15 +7,17 @@ import {
   loadMietobjektBewohner,
   loadMietobjektDetail,
 } from "$lib/server/mietobjekt-mapping";
+import { loadMietobjektImages } from "$lib/server/mietobjekt-images";
 import { getBookmarkedIds, toggleBookmarkAction } from "$lib/server/bookmarks";
 import type { Actions, PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params, locals }) => {
   const activeOrg = locals.activeOrganization;
 
-  const [mietobjekt, bewohner, assignable, reservationRows] = await Promise.all(
+  const [mietobjekt, images, bewohner, assignable, reservationRows] = await Promise.all(
     [
       loadMietobjektDetail(params.id),
+      loadMietobjektImages(params.id),
       loadMietobjektBewohner(params.id),
       activeOrg
         ? db
@@ -56,7 +58,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
     : [new Set<string>(), new Set<string>()];
 
   return {
-    mietobjekt,
+    mietobjekt: { ...mietobjekt, images },
     bewohner,
     bookmarked: mietobjektBookmarks.has(params.id),
     reservation: reservation

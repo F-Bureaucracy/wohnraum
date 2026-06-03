@@ -88,6 +88,29 @@ export const mietobjekt = pgTable("mietobjekt", {
     .notNull(),
 });
 
+export const mietobjektImage = pgTable(
+  "mietobjekt_image",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    mietobjektId: text("mietobjekt_id")
+      .notNull()
+      .references(() => mietobjekt.id, { onDelete: "cascade" }),
+    fileName: text("file_name").notNull(),
+    mimeType: text("mime_type"),
+    size: integer("size"),
+    storageKey: text("storage_key").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (t) => [index("mietobjektImage_mietobjektId_idx").on(t.mietobjektId)],
+);
+
 export const mieter = pgTable("mieter", {
   id: text("id")
     .primaryKey()

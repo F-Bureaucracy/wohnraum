@@ -48,6 +48,14 @@ export type MietobjektDetail = {
   beschreibung: string | null;
   vermieter: string | null;
   vermieterId: string;
+  images?: {
+    id: string;
+    fileName: string;
+    mimeType: string | null;
+    size: number | null;
+    storageKey: string;
+    sortOrder: number;
+  }[];
   createdAt: Date;
 };
 

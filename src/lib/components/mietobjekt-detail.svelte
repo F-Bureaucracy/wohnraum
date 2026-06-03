@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import DetailTable from '$lib/components/detail-table.svelte';
@@ -80,6 +81,18 @@
 		</div>
 	</div>
 
+	{#if m.images && m.images.length > 0}
+		<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+			{#each m.images as image (image.id)}
+				<img
+					src={resolve(`/api/mietobjekt-images/${image.id}`)}
+					alt={image.fileName}
+					class="aspect-[4/3] w-full rounded-md border object-cover"
+				/>
+			{/each}
+		</div>
+	{/if}
+
 	<div class="grid gap-4 lg:grid-cols-3">
 		<div class="space-y-4 lg:col-span-2">
 			<Card.Root>
@@ -122,7 +135,7 @@
 					</Card.Header>
 					<Card.Content>
 						<a
-							href="/admin/vermieter/{m.vermieterId}"
+							href={resolve(`/admin/vermieter/${m.vermieterId}`)}
 							class="hover:bg-muted -m-2 flex items-center gap-3 rounded-md p-2 transition-colors"
 							data-sveltekit-preload-data
 						>
@@ -150,7 +163,7 @@
 									{#each bewohner as person (person.id)}
 										<li>
 											<a
-												href="/admin/mieter/{person.id}"
+													href={resolve(`/admin/mieter/${person.id}`)}
 												class="hover:bg-muted -mx-2 flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors"
 												data-sveltekit-preload-data
 											>
