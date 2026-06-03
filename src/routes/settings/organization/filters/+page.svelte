@@ -152,7 +152,7 @@ function openEdit(f: PageData['filters'][number]) {
 			<Form.Field
 				{form}
 				name="appliesToMietobjekt"
-				class="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2"
+				class="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 space-y-0"
 			>
 				<Form.Control>
 					{#snippet children({ props })}
@@ -169,7 +169,7 @@ function openEdit(f: PageData['filters'][number]) {
 			<Form.Field
 				{form}
 				name="appliesToMieter"
-				class="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2"
+				class="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 space-y-0"
 			>
 				<Form.Control>
 					{#snippet children({ props })}

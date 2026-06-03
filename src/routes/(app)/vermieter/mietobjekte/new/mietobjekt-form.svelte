@@ -1,5 +1,6 @@
 <script lang="ts">
 import { onMount } from "svelte";
+import { resolve } from "$app/paths";
 import { type Infer, type SuperValidated, superForm } from "sveltekit-superforms";
 import { zod4Client } from "sveltekit-superforms/adapters";
 import * as Form from "$lib/components/ui/form/index.js";
@@ -67,6 +68,21 @@ const steps: StepperStep[] = [
 ];
 
 let activeId = $state(steps[0].id);
+let addressSuggestions = $state<AddressSuggestion[]>([]);
+let addressSearchOpen = $state(false);
+let addressSearchLoading = $state(false);
+let selectedSuggestionIndex = $state(0);
+let addressSearchRequest = 0;
+let selectedAddressQuery = $state("");
+
+type AddressSuggestion = {
+	id: string;
+	label: string;
+	street: string;
+	houseNumber: string;
+	postalCode: string;
+	city: string;
+};
 
 onMount(() => {
 	const observer = new IntersectionObserver(
@@ -90,6 +106,84 @@ function scrollToStep(id: string) {
 	if (!el) return;
 	el.scrollIntoView({ behavior: "smooth", block: "start" });
 	activeId = id;
+}
+
+const addressQuery = $derived(
+	[$formData.street, $formData.houseNumber, $formData.postalCode, $formData.city]
+		.filter(Boolean)
+		.join(" ")
+		.trim(),
+);
+
+$effect(() => {
+	const query = addressQuery;
+	if (query.length < 3) {
+		addressSuggestions = [];
+		addressSearchOpen = false;
+		addressSearchLoading = false;
+		return;
+	}
+	if (query === selectedAddressQuery) {
+		addressSuggestions = [];
+		addressSearchOpen = false;
+		addressSearchLoading = false;
+		return;
+	}
+
+	const requestId = ++addressSearchRequest;
+	addressSearchLoading = true;
+
+	const timeout = window.setTimeout(async () => {
+		try {
+			const params = new URLSearchParams({ q: query });
+			const response = await fetch(resolve(`/vermieter/mietobjekte/new/address-search?${params}`));
+			if (!response.ok) throw new Error(`Address search failed: ${response.status}`);
+			const data = (await response.json()) as { suggestions?: AddressSuggestion[] };
+			if (requestId !== addressSearchRequest) return;
+			addressSuggestions = data.suggestions ?? [];
+			selectedSuggestionIndex = 0;
+			addressSearchOpen = addressSuggestions.length > 0;
+		} catch {
+			if (requestId !== addressSearchRequest) return;
+			addressSuggestions = [];
+			addressSearchOpen = false;
+		} finally {
+			if (requestId === addressSearchRequest) addressSearchLoading = false;
+		}
+	}, 300);
+
+	return () => window.clearTimeout(timeout);
+});
+
+function selectAddressSuggestion(suggestion: AddressSuggestion) {
+	$formData.street = suggestion.street;
+	$formData.houseNumber = suggestion.houseNumber;
+	$formData.postalCode = suggestion.postalCode;
+	$formData.city = suggestion.city;
+	selectedAddressQuery = [suggestion.street, suggestion.houseNumber, suggestion.postalCode, suggestion.city]
+		.filter(Boolean)
+		.join(" ")
+		.trim();
+	addressSearchOpen = false;
+	addressSuggestions = [];
+}
+
+function handleAddressKeydown(event: KeyboardEvent) {
+	if (!addressSearchOpen || addressSuggestions.length === 0) return;
+
+	if (event.key === "ArrowDown") {
+		event.preventDefault();
+		selectedSuggestionIndex = (selectedSuggestionIndex + 1) % addressSuggestions.length;
+	} else if (event.key === "ArrowUp") {
+		event.preventDefault();
+		selectedSuggestionIndex =
+			(selectedSuggestionIndex - 1 + addressSuggestions.length) % addressSuggestions.length;
+	} else if (event.key === "Enter") {
+		event.preventDefault();
+		selectAddressSuggestion(addressSuggestions[selectedSuggestionIndex]);
+	} else if (event.key === "Escape") {
+		addressSearchOpen = false;
+	}
 }
 </script>
 
@@ -148,7 +242,57 @@ function scrollToStep(id: string) {
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label>Straße</Form.Label>
-								<Input {...props} bind:value={$formData.street} />
+								<div class="relative">
+									<Input
+										{...props}
+										bind:value={$formData.street}
+										autocomplete="off"
+										role="combobox"
+										aria-expanded={addressSearchOpen}
+										aria-controls="address-suggestions"
+										onfocus={() => {
+											if (addressSuggestions.length > 0) addressSearchOpen = true;
+										}}
+										onblur={() => {
+											window.setTimeout(() => {
+												addressSearchOpen = false;
+											}, 120);
+										}}
+										onkeydown={handleAddressKeydown}
+									/>
+									{#if addressSearchOpen}
+										<div
+											id="address-suggestions"
+											class="bg-popover text-popover-foreground absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-md border p-1 shadow-md"
+											role="listbox"
+										>
+											{#each addressSuggestions as suggestion, i (suggestion.id)}
+												<button
+													type="button"
+													class:bg-muted={i === selectedSuggestionIndex}
+													class="hover:bg-muted flex w-full flex-col rounded-sm px-2 py-1.5 text-left text-sm"
+													role="option"
+													aria-selected={i === selectedSuggestionIndex}
+													onpointerdown={(event) => event.preventDefault()}
+													onclick={() => selectAddressSuggestion(suggestion)}
+												>
+													<span class="font-medium">
+														{suggestion.street}
+														{suggestion.houseNumber}
+													</span>
+													<span class="text-muted-foreground text-xs">
+														{suggestion.postalCode}
+														{suggestion.city}
+													</span>
+												</button>
+											{/each}
+										</div>
+									{:else if addressSearchLoading}
+										<div class="text-muted-foreground absolute top-full mt-1 text-xs">
+											Adressen werden gesucht…
+										</div>
+									{/if}
+								</div>
 							{/snippet}
 						</Form.Control>
 						<Form.FieldErrors />
