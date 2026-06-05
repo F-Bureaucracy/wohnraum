@@ -3,6 +3,9 @@ import postgres from "postgres";
 import { env } from "$env/dynamic/private";
 import * as schema from "./schema";
 
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env" });
+
 if (!env.DATABASE_URL) {
   console.log(env);
   throw new Error("DATABASE_URL is not set");
