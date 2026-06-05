@@ -38,18 +38,18 @@ export async function replaceMietobjektImages(
     .from(mietobjektImage)
     .where(eq(mietobjektImage.mietobjektId, mietobjektId));
 
-  const keptIds = new Set(images.flatMap((image) => (image.id ? [image.id] : [])));
+  const keptIds = new Set(
+    images.flatMap((image) => (image.id ? [image.id] : [])),
+  );
   const removed = existing.filter((image) => !keptIds.has(image.id));
 
   if (removed.length > 0) {
-    await db
-      .delete(mietobjektImage)
-      .where(
-        inArray(
-          mietobjektImage.id,
-          removed.map((image) => image.id),
-        ),
-      );
+    await db.delete(mietobjektImage).where(
+      inArray(
+        mietobjektImage.id,
+        removed.map((image) => image.id),
+      ),
+    );
 
     await Promise.allSettled(
       removed.map((image) => deleteObject(image.storageKey)),

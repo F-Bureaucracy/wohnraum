@@ -14,8 +14,8 @@ import type { Actions, PageServerLoad } from "./$types";
 export const load: PageServerLoad = async ({ params, locals }) => {
   const activeOrg = locals.activeOrganization;
 
-  const [mietobjekt, images, bewohner, assignable, reservationRows] = await Promise.all(
-    [
+  const [mietobjekt, images, bewohner, assignable, reservationRows] =
+    await Promise.all([
       loadMietobjektDetail(params.id),
       loadMietobjektImages(params.id),
       loadMietobjektBewohner(params.id),
@@ -45,8 +45,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
         .innerJoin(user, eq(user.id, mietobjektReservation.userId))
         .where(eq(mietobjektReservation.mietobjektId, params.id))
         .limit(1),
-    ],
-  );
+    ]);
 
   const reservation = reservationRows[0];
 

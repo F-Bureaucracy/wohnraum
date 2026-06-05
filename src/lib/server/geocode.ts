@@ -110,7 +110,11 @@ export async function searchAddressSuggestions(
       .map((result) => {
         const address = result.address ?? {};
         const street =
-          address.road ?? address.pedestrian ?? address.footway ?? address.path ?? "";
+          address.road ??
+          address.pedestrian ??
+          address.footway ??
+          address.path ??
+          "";
         const city =
           address.city ??
           address.town ??

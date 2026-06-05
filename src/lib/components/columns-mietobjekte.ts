@@ -104,7 +104,10 @@ export function createMietobjekteColumns(
             size: 220,
             cell: ({ row }) =>
               row.original.vermieterId
-                ? linkCell(row.original.vermieter ?? "—", `/admin/vermieter/${row.original.vermieterId}`)
+                ? linkCell(
+                    row.original.vermieter ?? "—",
+                    `/admin/vermieter/${row.original.vermieterId}`,
+                  )
                 : truncCell(row.original.vermieter ?? "—"),
           } satisfies ColumnDef<Mietobjekt>,
         ]
