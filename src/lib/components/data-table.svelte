@@ -45,7 +45,6 @@ type DataTableProps<TData, TValue> = {
 	entityPlural?: string;
 	idFieldName?: string;
 	deleteAction?: string;
-	editAction?: string;
 	createHref?: string;
 	createLabel?: string;
 	filters?: TableFilter[];
@@ -62,7 +61,6 @@ let {
 	entityPlural,
 	idFieldName,
 	deleteAction,
-	editAction,
 	createHref,
 	createLabel,
 	filters,
@@ -381,7 +379,6 @@ $effect(() => {
 					{entityPlural}
 					{idFieldName}
 					{deleteAction}
-					{editAction}
 				/>
 			</div>
 		</div>

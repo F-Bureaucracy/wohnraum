@@ -16,7 +16,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "bun run scripts/seed-filters.ts",
-    "auth:schema": "better-auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
+    "auth:schema": "better-auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes",
+    "docker:build": "docker build --platform linux/amd64 -t rg.nl-ams.scw.cloud/f-registry/wohnraum:latest  -f ./Dockerfile .",
+    "docker:deploy": "docker push rg.nl-ams.scw.cloud/f-registry/wohnraum:latest"
   },
   "devDependencies": {
     "@better-auth/cli": "~1.4.21",

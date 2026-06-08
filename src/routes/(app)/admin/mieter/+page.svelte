@@ -84,7 +84,6 @@
 			entityPlural="Mieter"
 			idFieldName="mieterId"
 			deleteAction="/admin/mieter?/deleteMieter"
-			editAction="/admin/mieter?/updateMieter"
 			createHref="/admin/mieter/new"
 			createLabel="Neuer Mieter"
 		/>

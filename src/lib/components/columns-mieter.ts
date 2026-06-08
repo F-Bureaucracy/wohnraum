@@ -30,7 +30,6 @@ const actionProps = {
   entityPlural: "Mieter",
   idFieldName: "mieterId",
   deleteAction: "/admin/mieter?/deleteMieter",
-  editAction: "/admin/mieter?/updateMieter",
 };
 
 export function createMieterColumns(
@@ -135,7 +134,7 @@ export function createMieterColumns(
       cell: ({ row }) =>
         renderComponent(DataTableActions, {
           ids: [row.original.id],
-          title: row.original.name,
+          editHref: `/admin/mieter/${row.original.id}?edit`,
           ...actionProps,
         }),
     },

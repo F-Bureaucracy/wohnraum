@@ -18,11 +18,13 @@
 	import PencilIcon from '@lucide/svelte/icons/pencil';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
 	import HomeSearchIcon from '@lucide/svelte/icons/house';
+	import { page } from '$app/state';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
-	let editing = $state(false);
+	// Opened in edit mode when navigated to with ?edit (e.g. the table's "Bearbeiten" action).
+	let editing = $state(page.url.searchParams.has('edit'));
 
 	let newNote = $state('');
 	let submitting = $state(false);

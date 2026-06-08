@@ -131,7 +131,6 @@
 			entityPlural="Mietobjekte"
 			idFieldName="mietobjektId"
 			deleteAction={`${basePath}?/deleteMietobjekt`}
-			editAction={`${basePath}?/updateMietobjekt`}
 			{createHref}
 			{createLabel}
 			onFilteredDataChange={(rows) => (tableFilteredData = rows)}

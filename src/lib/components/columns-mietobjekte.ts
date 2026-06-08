@@ -46,7 +46,6 @@ export function createMietobjekteColumns(
     entityPlural: "Mietobjekte",
     idFieldName: "mietobjektId",
     deleteAction: `${basePath}?/deleteMietobjekt`,
-    editAction: `${basePath}?/updateMietobjekt`,
   };
   const bookmarkAction = opts.bookmarkAction;
   const showVermieter = opts.showVermieter ?? true;
@@ -162,7 +161,7 @@ export function createMietobjekteColumns(
       cell: ({ row }) =>
         renderComponent(DataTableActions, {
           ids: [row.original.id],
-          title: row.original.adresse,
+          editHref: `${basePath}/${row.original.id}?edit`,
           ...actionProps,
         }),
     },
