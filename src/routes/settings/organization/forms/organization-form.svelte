@@ -34,8 +34,8 @@ const initials = $derived(
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>General</Card.Title>
-		<Card.Description>Update your organization's name, slug, and logo.</Card.Description>
+		<Card.Title>Allgemein</Card.Title>
+		<Card.Description>Aktualisieren Sie Name, Slug und Logo Ihrer Organisation.</Card.Description>
 	</Card.Header>
 	<form method="POST" action="?/updateOrganization" use:enhance>
 		<Card.Content class="space-y-4">
@@ -69,14 +69,14 @@ const initials = $derived(
 						<Input {...props} bind:value={$formData.slug} />
 					{/snippet}
 				</Form.Control>
-				<Form.Description>Used in URLs. Lowercase letters, numbers, and hyphens.</Form.Description>
+				<Form.Description>Wird in URLs verwendet. Kleinbuchstaben, Zahlen und Bindestriche.</Form.Description>
 				<Form.FieldErrors />
 			</Form.Field>
 
 			<Form.Field {form} name="logo">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Logo URL</Form.Label>
+						<Form.Label>Logo-URL</Form.Label>
 						<Input
 							{...props}
 							type="url"
@@ -85,7 +85,7 @@ const initials = $derived(
 						/>
 					{/snippet}
 				</Form.Control>
-				<Form.Description>Leave blank to remove the logo.</Form.Description>
+				<Form.Description>Leer lassen, um das Logo zu entfernen.</Form.Description>
 				<Form.FieldErrors />
 			</Form.Field>
 		</Card.Content>
@@ -94,7 +94,7 @@ const initials = $derived(
 				{#if $submitting}
 					<Loader2Icon class="h-4 w-4 animate-spin" />
 				{:else}
-					Save
+					Speichern
 				{/if}
 			</Form.Button>
 		</Card.Footer>

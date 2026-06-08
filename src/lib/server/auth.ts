@@ -43,6 +43,11 @@ async function findAvailableSlug(baseSlug: string): Promise<string> {
 }
 
 export const auth = betterAuth({
+  cookieCache: {
+    enabled: true,
+    maxAge: 10 * 60, // Cache duration in seconds
+  },
+
   baseURL: env.ORIGIN,
   secret: env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(db, { provider: "pg" }),
@@ -76,17 +81,17 @@ export const auth = betterAuth({
   },
   plugins: [
     auditLog(),
-    genericOAuth({
-      config: [
-        {
-          providerId: "fbau",
-          discoveryUrl: `${env.FBAU_ISSUER}/.well-known/openid-configuration`,
-          clientId: env.FBAU_CLIENT_ID,
-          clientSecret: env.FBAU_CLIENT_SECRET,
-          scopes: ["openid", "profile", "email"],
-        },
-      ],
-    }),
+    // genericOAuth({
+    //   config: [
+    //     {
+    //       providerId: "fbau",
+    //       discoveryUrl: `${env.FBAU_ISSUER}/.well-known/openid-configuration`,
+    //       clientId: env.FBAU_CLIENT_ID,
+    //       clientSecret: env.FBAU_CLIENT_SECRET,
+    //       scopes: ["openid", "profile", "email"],
+    //     },
+    //   ],
+    // }),
     organization({
       teams: {
         enabled: true,

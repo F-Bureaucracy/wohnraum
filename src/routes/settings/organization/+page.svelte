@@ -16,7 +16,7 @@ let { data }: { data: PageData } = $props();
 				<ChevronLeftIcon class="h-5 w-5" />
 			</a>
 		{/if}
-		<h1 class="text-base font-semibold">Organization</h1>
+		<h1 class="text-base font-semibold">Organisation</h1>
 	</header>
 	<div class="flex-1 overflow-auto p-6">
 		<div class="max-w-2xl space-y-4">

@@ -56,10 +56,10 @@ function onSlugInput(event: Event) {
 	<Dialog.Content class="sm:max-w-[480px]">
 		<form method="POST" action="/organizations?/createOrganization" use:enhance>
 			<Dialog.Header>
-				<Dialog.Title>Create a new organization</Dialog.Title>
+				<Dialog.Title>Neue Organisation erstellen</Dialog.Title>
 				<Dialog.Description>
-					Give your organization a name. The slug is generated automatically — edit it if you'd like
-					a different URL identifier.
+					Geben Sie Ihrer Organisation einen Namen. Der Slug wird automatisch generiert — passen Sie
+					ihn an, wenn Sie einen anderen URL-Bezeichner möchten.
 				</Dialog.Description>
 			</Dialog.Header>
 			<div class="grid gap-4 py-4">
@@ -94,13 +94,13 @@ function onSlugInput(event: Event) {
 			</div>
 			<Dialog.Footer>
 				<Dialog.Close type="button" class={buttonVariants({ variant: 'outline' })}>
-					Cancel
+					Abbrechen
 				</Dialog.Close>
 				<Form.Button type="submit" disabled={$submitting}>
 					{#if $submitting}
 						<Spinner />
 					{/if}
-					Create organization
+					Organisation erstellen
 				</Form.Button>
 			</Dialog.Footer>
 		</form>

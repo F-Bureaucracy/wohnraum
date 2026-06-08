@@ -25,7 +25,7 @@ const settingsNav = $derived(
 					class="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
 				>
 					<ChevronLeftIcon class="h-4 w-4" />
-					Go back
+					Zurück
 				</a>
 			</div>
 			<nav class="flex-1 overflow-auto px-3 pb-4">

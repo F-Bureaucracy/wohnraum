@@ -18,7 +18,7 @@ let { data }: { data: PageData } = $props();
 				<ChevronLeftIcon class="h-5 w-5" />
 			</a>
 		{/if}
-		<h1 class="text-base font-semibold">User</h1>
+		<h1 class="text-base font-semibold">Benutzer</h1>
 	</header>
 	<div class="flex-1 overflow-auto p-6">
 		<div class="max-w-5xl divide-y [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">

@@ -20,8 +20,8 @@ const { form: formData, enhance, submitting } = form;
 
 <div class="grid gap-x-8 gap-y-3 md:grid-cols-3">
 	<div class="md:pt-1">
-		<h2 class="text-base font-semibold">Email</h2>
-		<p class="mt-1 text-sm text-muted-foreground">Change the email address used for your account.</p>
+		<h2 class="text-base font-semibold">E-Mail</h2>
+		<p class="mt-1 text-sm text-muted-foreground">Ändern Sie die für Ihr Konto verwendete E-Mail-Adresse.</p>
 	</div>
 	<Card.Root class="md:col-span-2">
 		<form method="POST" action="?/updateEmail" use:enhance>
@@ -29,7 +29,7 @@ const { form: formData, enhance, submitting } = form;
 			<Form.Field {form} name="email">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Email</Form.Label>
+						<Form.Label>E-Mail</Form.Label>
 						<Input {...props} type="email" bind:value={$formData.email} />
 					{/snippet}
 				</Form.Control>
@@ -41,7 +41,7 @@ const { form: formData, enhance, submitting } = form;
 				{#if $submitting}
 					<Loader2Icon class="h-4 w-4 animate-spin" />
 				{:else}
-					Save email
+					E-Mail speichern
 				{/if}
 			</Form.Button>
 		</Card.Footer>

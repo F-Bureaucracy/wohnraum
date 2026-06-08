@@ -36,8 +36,8 @@ const initials = $derived(
 
 <div class="grid gap-x-8 gap-y-3 md:grid-cols-3">
 	<div class="md:pt-1">
-		<h2 class="text-base font-semibold">Profile</h2>
-		<p class="mt-1 text-sm text-muted-foreground">Update your display name and avatar.</p>
+		<h2 class="text-base font-semibold">Profil</h2>
+		<p class="mt-1 text-sm text-muted-foreground">Aktualisieren Sie Ihren Anzeigenamen und Ihr Profilbild.</p>
 	</div>
 	<Card.Root class="md:col-span-2">
 		<form method="POST" action="?/updateProfile" use:enhance>
@@ -68,7 +68,7 @@ const initials = $derived(
 			<Form.Field {form} name="image">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label>Avatar URL</Form.Label>
+						<Form.Label>Profilbild-URL</Form.Label>
 						<Input
 							{...props}
 							type="url"
@@ -77,7 +77,7 @@ const initials = $derived(
 						/>
 					{/snippet}
 				</Form.Control>
-				<Form.Description>Leave blank to remove your avatar.</Form.Description>
+				<Form.Description>Leer lassen, um Ihr Profilbild zu entfernen.</Form.Description>
 				<Form.FieldErrors />
 			</Form.Field>
 		</Card.Content>
@@ -86,7 +86,7 @@ const initials = $derived(
 				{#if $submitting}
 					<Loader2Icon class="h-4 w-4 animate-spin" />
 				{:else}
-					Save profile
+					Profil speichern
 				{/if}
 			</Form.Button>
 		</Card.Footer>

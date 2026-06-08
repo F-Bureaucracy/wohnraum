@@ -18,7 +18,7 @@ const form = superForm(data.form, {
 		}
 	},
 	onError: ({ result }) => {
-		toast.error(result.error.message ?? 'Unexpected error');
+		toast.error(result.error.message ?? 'Unerwarteter Fehler');
 	},
 });
 const { form: formData, enhance } = form;
@@ -26,17 +26,17 @@ const { form: formData, enhance } = form;
 
 <form class={cn('flex flex-col gap-6')} method="POST" use:enhance>
 	<div class="flex flex-col items-center gap-1 text-center">
-		<h1 class="text-2xl font-bold">Create your account</h1>
+		<h1 class="text-2xl font-bold">Konto erstellen</h1>
 		<p class="text-sm text-balance text-muted-foreground">
-			Fill in the form below to create your account
+			Füllen Sie das Formular unten aus, um Ihr Konto zu erstellen
 		</p>
 	</div>
 
 	<Form.Field {form} name="name">
 		<Form.Control>
 			{#snippet children({ props })}
-				<Form.Label>Full Name</Form.Label>
-				<Input {...props} bind:value={$formData.name} type="text" placeholder="John Doe" />
+				<Form.Label>Vollständiger Name</Form.Label>
+				<Input {...props} bind:value={$formData.name} type="text" placeholder="Max Mustermann" />
 			{/snippet}
 		</Form.Control>
 		<Form.FieldErrors />
@@ -45,12 +45,12 @@ const { form: formData, enhance } = form;
 	<Form.Field {form} name="email">
 		<Form.Control>
 			{#snippet children({ props })}
-				<Form.Label>Email</Form.Label>
+				<Form.Label>E-Mail</Form.Label>
 				<Input {...props} bind:value={$formData.email} type="email" placeholder="m@example.com" />
 			{/snippet}
 		</Form.Control>
 		<Form.Description>
-			We'll use this to contact you. We will not share your email with anyone else.
+			Wir verwenden diese, um Sie zu kontaktieren. Wir geben Ihre E-Mail-Adresse nicht weiter.
 		</Form.Description>
 		<Form.FieldErrors />
 	</Form.Field>
@@ -58,11 +58,11 @@ const { form: formData, enhance } = form;
 	<Form.Field {form} name="password">
 		<Form.Control>
 			{#snippet children({ props })}
-				<Form.Label>Password</Form.Label>
+				<Form.Label>Passwort</Form.Label>
 				<Input {...props} bind:value={$formData.password} type="password" />
 			{/snippet}
 		</Form.Control>
-		<Form.Description>Must be at least 12 characters long.</Form.Description>
+		<Form.Description>Muss mindestens 12 Zeichen lang sein.</Form.Description>
 		<Form.FieldErrors />
 	</Form.Field>
 
@@ -77,12 +77,12 @@ const { form: formData, enhance } = form;
 	<!--         <Form.FieldErrors /> -->
 	<!-- </Form.Field> -->
 
-	<Form.Button type="submit">Create Account</Form.Button>
+	<Form.Button type="submit">Konto erstellen</Form.Button>
 
 	<p class="px-6 text-center text-sm text-muted-foreground">
-		Already have an account? <a
+		Sie haben bereits ein Konto? <a
 			href="/login"
-			class="underline underline-offset-4 hover:text-primary">Log in</a
+			class="underline underline-offset-4 hover:text-primary">Anmelden</a
 		>
 	</p>
 </form>

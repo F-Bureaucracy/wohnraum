@@ -25,7 +25,7 @@ $effect(() => {
 {#if !isWide.current}
 	<div class="flex h-screen flex-col">
 		<header class="flex h-14 items-center justify-center border-b px-4">
-			<h1 class="text-base font-semibold">Settings</h1>
+			<h1 class="text-base font-semibold">Einstellungen</h1>
 		</header>
 		<nav class="flex-1 overflow-auto">
 			{#each settingsNav as group (group.section)}

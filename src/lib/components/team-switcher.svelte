@@ -45,7 +45,7 @@ async function setActive(organizationId: string) {
 	if (result.type === 'success') {
 		await invalidateAll();
 	} else if (result.type === 'failure' || result.type === 'error') {
-		toast.error('Failed to switch organization');
+		toast.error('Organisation konnte nicht gewechselt werden');
 	}
 	await applyAction(result);
 }
@@ -68,7 +68,7 @@ async function setActive(organizationId: string) {
 						</div>
 						<div class="grid flex-1 text-start text-sm leading-tight">
 							<span class="truncate font-medium">
-								{activeOrg?.name ?? 'No organization'}
+								{activeOrg?.name ?? 'Keine Organisation'}
 							</span>
 							{#if activeOrg}
 								<span class="truncate text-xs">{activeOrg.slug}</span>
@@ -84,7 +84,7 @@ async function setActive(organizationId: string) {
 				side={sidebar.isMobile ? 'bottom' : 'right'}
 				sideOffset={4}
 			>
-				<DropdownMenu.Label class="text-xs text-muted-foreground">Organizations</DropdownMenu.Label>
+				<DropdownMenu.Label class="text-xs text-muted-foreground">Organisationen</DropdownMenu.Label>
 				{#each organizations as org, index (org.id)}
 					<DropdownMenu.Item onSelect={() => setActive(org.id)} class="gap-2 p-2">
 						<div class="flex size-6 items-center justify-center rounded-md border">
@@ -99,7 +99,7 @@ async function setActive(organizationId: string) {
 					<div class="flex size-6 items-center justify-center rounded-md border bg-transparent">
 						<PlusIcon class="size-4" />
 					</div>
-					<div class="font-medium text-muted-foreground">Add organization</div>
+					<div class="font-medium text-muted-foreground">Organisation hinzufügen</div>
 				</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>

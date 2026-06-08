@@ -12,15 +12,15 @@ export function buildSettingsNav({
 }): NavGroup[] {
   const nav: NavGroup[] = [
     {
-      section: "Account",
-      items: [{ title: "User", href: "/settings/user", icon: UserIcon }],
+      section: "Konto",
+      items: [{ title: "Benutzer", href: "/settings/user", icon: UserIcon }],
     },
   ];
 
   if (canManageOrg) {
     const items: NavItem[] = [
       {
-        title: "General",
+        title: "Allgemein",
         href: "/settings/organization",
         icon: Building2Icon,
       },
@@ -32,7 +32,7 @@ export function buildSettingsNav({
         icon: SlidersHorizontalIcon,
       });
     }
-    nav.push({ section: "Organization", items });
+    nav.push({ section: "Organisation", items });
   }
 
   return nav;

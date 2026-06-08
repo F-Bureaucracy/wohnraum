@@ -60,7 +60,7 @@
 				{#snippet child({ props })}
 					<a href={resolve('/login')} {...props}>
 						<LogOutIcon class="rotate-180" />
-						<span>Log in</span>
+						<span>Anmelden</span>
 					</a>
 				{/snippet}
 			</Sidebar.MenuButton>
@@ -122,7 +122,7 @@
 					{#snippet child({ props })}
 						<a href={resolve('/settings')} {...props}>
 							<SettingsIcon />
-							Settings
+							Einstellungen
 						</a>
 					{/snippet}
 				</DropdownMenu.Item>
@@ -132,7 +132,7 @@
 						<form method="POST" action="/auth/signout">
 							<button {...props} type="submit">
 								<LogOutIcon />
-								Log out
+								Abmelden
 							</button>
 						</form>
 					{/snippet}

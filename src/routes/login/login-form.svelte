@@ -14,7 +14,7 @@ async function signInWithFbau() {
 		providerId: 'fbau',
 		callbackURL: '/',
 	});
-	if (error) toast.error(error.message ?? 'OAuth sign-in failed');
+	if (error) toast.error(error.message ?? 'OAuth-Anmeldung fehlgeschlagen');
 }
 
 let { data }: { data: { form: SuperValidated<Infer<FormSchema>> } } = $props();
@@ -27,7 +27,7 @@ const form = superForm(data.form, {
 		}
 	},
 	onError: ({ result }) => {
-		toast.error(result.error.message ?? 'Unexpected error');
+		toast.error(result.error.message ?? 'Unerwarteter Fehler');
 	},
 });
 const { form: formData, enhance } = form;
@@ -35,16 +35,16 @@ const { form: formData, enhance } = form;
 
 <form class={cn('flex flex-col gap-6')} method="POST" use:enhance>
 	<div class="flex flex-col items-center gap-1 text-center">
-		<h1 class="text-2xl font-bold">Login to your account</h1>
+		<h1 class="text-2xl font-bold">Bei Ihrem Konto anmelden</h1>
 		<p class="text-sm text-balance text-muted-foreground">
-			Enter your email below to login to your account
+			Geben Sie unten Ihre E-Mail-Adresse ein, um sich anzumelden
 		</p>
 	</div>
 
 	<Form.Field {form} name="email">
 		<Form.Control>
 			{#snippet children({ props })}
-				<Form.Label>Email</Form.Label>
+				<Form.Label>E-Mail</Form.Label>
 				<Input {...props} bind:value={$formData.email} type="email" placeholder="m@example.com" />
 			{/snippet}
 		</Form.Control>
@@ -55,9 +55,9 @@ const { form: formData, enhance } = form;
 		<Form.Control>
 			{#snippet children({ props })}
 				<div class="flex items-center">
-					<Form.Label>Password</Form.Label>
+					<Form.Label>Passwort</Form.Label>
 					<a href="/password-reset" class="ms-auto text-sm underline-offset-4 hover:underline">
-						Forgot your password?
+						Passwort vergessen?
 					</a>
 				</div>
 				<Input {...props} bind:value={$formData.password} type="password" />
@@ -66,20 +66,20 @@ const { form: formData, enhance } = form;
 		<Form.FieldErrors />
 	</Form.Field>
 
-	<Form.Button type="submit">Login</Form.Button>
+	<Form.Button type="submit">Anmelden</Form.Button>
 
-	<div class="relative text-center text-sm">
-		<span class="bg-background relative z-10 px-2 text-muted-foreground">Or continue with</span>
-		<div class="absolute inset-0 top-1/2 border-t"></div>
-	</div>
-
-	<Button type="button" variant="outline" onclick={signInWithFbau}>
-		Continue with f-bau
-	</Button>
+	<!-- <div class="relative text-center text-sm"> -->
+	<!-- 	<span class="bg-background relative z-10 px-2 text-muted-foreground">Oder fortfahren mit</span> -->
+	<!-- 	<div class="absolute inset-0 top-1/2 border-t"></div> -->
+	<!-- </div> -->
+	<!---->
+	<!-- <Button type="button" variant="outline" onclick={signInWithFbau}> -->
+	<!-- 	Mit f-bau fortfahren -->
+	<!-- </Button> -->
 
 	<p class="px-6 text-center text-sm text-muted-foreground">
-		Don't have an account?
-		<a href="/signup" class="underline underline-offset-4 hover:text-primary">Sign up</a>
+		Noch kein Konto?
+		<a href="/signup" class="underline underline-offset-4 hover:text-primary">Registrieren</a>
 	</p>
 </form>
 
