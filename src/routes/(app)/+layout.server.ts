@@ -18,22 +18,29 @@ export const load: LayoutServerLoad = async (event) => {
     throw redirect(302, "/login");
   }
 
-  const orgs = await auth.api
-    .listOrganizations({ headers: event.request.headers })
-    .catch(() => [] as Array<{ id: string; name: string; slug: string }>);
-
-  const createOrganizationForm = await superValidate(
-    zod4(createOrganizationSchema),
-  );
-  const filterDefinitions = await loadFilterDefinitions();
-  const activeMember = await auth.api
-    .getActiveMember({ headers: event.request.headers })
-    .catch(() => null);
-  const role = activeMember?.role ?? "";
-  const canViewOrgInvitations = role === "owner" || role === "admin";
   const activeOrg = event.locals.activeOrganization ?? null;
 
-  const [incomingInvitations, organizationInvitations] = await Promise.all([
+  // Everything below is independent, so fire it all in one parallel batch
+  // rather than awaiting each in series — against a remote DB every sequential
+  // round-trip costs ~one network latency, so collapsing them matters.
+  // The org-invitations query is run speculatively whenever there's an active
+  // org; its results are only surfaced to owners/admins (see below).
+  const [
+    orgs,
+    createOrganizationForm,
+    filterDefinitions,
+    activeMember,
+    incomingInvitations,
+    orgInvitationsRaw,
+  ] = await Promise.all([
+    auth.api
+      .listOrganizations({ headers: event.request.headers })
+      .catch(() => [] as Array<{ id: string; name: string; slug: string }>),
+    superValidate(zod4(createOrganizationSchema)),
+    loadFilterDefinitions(),
+    auth.api
+      .getActiveMember({ headers: event.request.headers })
+      .catch(() => null),
     db
       .select({
         id: invitation.id,
@@ -55,7 +62,7 @@ export const load: LayoutServerLoad = async (event) => {
       )
       .orderBy(desc(invitation.createdAt))
       .limit(5),
-    canViewOrgInvitations && activeOrg
+    activeOrg
       ? db
           .select({
             id: invitation.id,
@@ -82,6 +89,12 @@ export const load: LayoutServerLoad = async (event) => {
           .limit(5)
       : Promise.resolve([]),
   ]);
+
+  const role = activeMember?.role ?? "";
+  const canViewOrgInvitations = role === "owner" || role === "admin";
+  const organizationInvitations = canViewOrgInvitations
+    ? orgInvitationsRaw
+    : [];
 
   const notifications = [
     ...incomingInvitations.map((item) => ({
