@@ -1,18 +1,24 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import PageHeader from '$lib/components/page-header.svelte';
 	import ReportViewer from '$lib/components/report-viewer.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Spinner } from '$lib/components/ui/spinner/index.js';
 	import * as Alert from '$lib/components/ui/alert/index.js';
+	import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
 	import DownloadIcon from '@lucide/svelte/icons/download';
+	import Trash2Icon from '@lucide/svelte/icons/trash-2';
 	import TriangleAlertIcon from '@lucide/svelte/icons/triangle-alert';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
 	const bericht = $derived(data.bericht);
+
+	let deleteDialogOpen = $state(false);
+	let deleting = $state(false);
 
 	// While the report is still generating, poll the status endpoint and reload
 	// the page data once it flips to ready/error.
@@ -43,13 +49,19 @@
 			<p class="text-sm text-muted-foreground">Prompt</p>
 			<p class="font-medium break-words">{bericht.prompt}</p>
 		</div>
-		{#if bericht.status === 'ready' && bericht.hasPdf}
-			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<Button href={`/admin/berichte/${bericht.id}/pdf`} download class="shrink-0">
-				<DownloadIcon class="size-4" />
-				PDF herunterladen
+		<div class="flex shrink-0 items-center gap-2">
+			{#if bericht.status === 'ready' && bericht.hasPdf}
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<Button href={`/admin/berichte/${bericht.id}/pdf`} target="_blank" rel="noopener">
+					<DownloadIcon class="size-4" />
+					PDF öffnen
+				</Button>
+			{/if}
+			<Button variant="outline" onclick={() => (deleteDialogOpen = true)}>
+				<Trash2Icon class="size-4" />
+				Löschen
 			</Button>
-		{/if}
+		</div>
 	</div>
 
 	{#if bericht.status === 'generating'}
@@ -78,3 +90,38 @@
 		<p class="text-sm text-muted-foreground">Keine Inhalte verfügbar.</p>
 	{/if}
 </div>
+
+<AlertDialog.Root bind:open={deleteDialogOpen}>
+	<AlertDialog.Content>
+		<AlertDialog.Header>
+			<AlertDialog.Title>Bericht löschen?</AlertDialog.Title>
+			<AlertDialog.Description>
+				Diese Aktion kann nicht rückgängig gemacht werden. Der Bericht und das zugehörige PDF werden
+				dauerhaft gelöscht.
+			</AlertDialog.Description>
+		</AlertDialog.Header>
+		<AlertDialog.Footer>
+			<AlertDialog.Cancel disabled={deleting}>Abbrechen</AlertDialog.Cancel>
+			<form
+				method="POST"
+				action="?/delete"
+				use:enhance={() => {
+					deleting = true;
+					return async ({ update }) => {
+						await update();
+						deleting = false;
+						deleteDialogOpen = false;
+					};
+				}}
+			>
+				<Button type="submit" variant="destructive" disabled={deleting}>
+					{#if deleting}
+						<Spinner class="mr-2" /> Wird gelöscht…
+					{:else}
+						Löschen
+					{/if}
+				</Button>
+			</form>
+		</AlertDialog.Footer>
+	</AlertDialog.Content>
+</AlertDialog.Root>
