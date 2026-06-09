@@ -1,4 +1,5 @@
 <script lang="ts" generics="TData, TValue">
+import type { Snippet } from 'svelte';
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from '@lucide/svelte';
 import {
 	type ColumnDef,
@@ -47,6 +48,7 @@ type DataTableProps<TData, TValue> = {
 	deleteAction?: string;
 	createHref?: string;
 	createLabel?: string;
+	createAction?: Snippet;
 	filters?: TableFilter[];
 	initialColumnFilters?: ColumnFiltersState;
 	onFilteredDataChange?: (data: TData[]) => void;
@@ -63,6 +65,7 @@ let {
 	deleteAction,
 	createHref,
 	createLabel,
+	createAction,
 	filters,
 	initialColumnFilters,
 	onFilteredDataChange,
@@ -201,7 +204,9 @@ $effect(() => {
 			{#if filters && filters.length > 0}
 				<DataTableFilters {table} {filters} />
 			{/if}
-			{#if createHref}
+			{#if createAction}
+				{@render createAction()}
+			{:else if createHref}
 				<!-- eslint-disable svelte/no-navigation-without-resolve -->
 				<a
 					href={resolveDynamicHref(createHref)}

@@ -3,6 +3,7 @@
 	import * as Empty from '$lib/components/ui/empty/index.js';
 	import PageHeader from '$lib/components/page-header.svelte';
 	import MietobjekteView from '$lib/components/mietobjekte-view.svelte';
+	import MietobjektCreateButton from '$lib/components/mietobjekt-create-button.svelte';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import HomeIcon from '@lucide/svelte/icons/home';
 	import type { PageData } from './$types';
@@ -36,8 +37,13 @@
 		data={data.mietobjekte}
 		basePath="/vermieter/mietobjekte"
 		filterDefinitions={data.filterDefinitions}
-		createHref="/vermieter/mietobjekte/new"
-		createLabel="Neues Mietobjekt"
 		showVermieterColumn={false}
-	/>
+	>
+		{#snippet createAction()}
+			<MietobjektCreateButton
+				createHref="/vermieter/mietobjekte/new"
+				createLabel="Neues Mietobjekt"
+			/>
+		{/snippet}
+	</MietobjekteView>
 {/if}

@@ -19,6 +19,7 @@
 		filterDefinitions,
 		createHref,
 		createLabel,
+		createAction,
 		bookmarkAction,
 		showVermieterColumn = true,
 		filters,
@@ -29,6 +30,7 @@
 		filterDefinitions: FilterDefinition[];
 		createHref?: string;
 		createLabel?: string;
+		createAction?: import('svelte').Snippet;
 		bookmarkAction?: string;
 		showVermieterColumn?: boolean;
 		filters?: TableFilter[];
@@ -133,6 +135,7 @@
 			deleteAction={`${basePath}?/deleteMietobjekt`}
 			{createHref}
 			{createLabel}
+			{createAction}
 			onFilteredDataChange={(rows) => (tableFilteredData = rows)}
 		/>
 	</div>
