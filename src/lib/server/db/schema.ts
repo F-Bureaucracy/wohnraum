@@ -233,6 +233,43 @@ export const appAuditLog = pgTable(
   ],
 );
 
+// AI-generated data reports (f-omnes). A case worker enters a prompt; the report
+// is generated asynchronously, so a row starts as `generating` and is later
+// flipped to `ready` (with the editable HTML + the PDF stored in S3) or `error`.
+export const report = pgTable(
+  "report",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    createdById: text("created_by_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    prompt: text("prompt").notNull(),
+    // generating | ready | error
+    status: text("status").notNull().default("generating"),
+    // Editable report HTML returned by f-omnes.
+    sourceHtml: text("source_html"),
+    // f-omnes' own report id, used to (re)fetch the PDF.
+    omnesReportId: text("omnes_report_id"),
+    // Key of the generated PDF in our S3 bucket.
+    pdfStorageKey: text("pdf_storage_key"),
+    errorMessage: text("error_message"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (t) => [
+    index("report_organizationId_idx").on(t.organizationId),
+    index("report_createdAt_idx").on(t.createdAt),
+  ],
+);
+
 export const conversation = pgTable("conversation", {
   id: text("id")
     .primaryKey()

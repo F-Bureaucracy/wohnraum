@@ -3,7 +3,11 @@
     "allow": [
       "WebFetch(domain:registry.npmjs.org)",
       "Bash(ctx7 docs *)",
-      "WebFetch(domain:api.immobilienscout24.de)"
+      "WebFetch(domain:api.immobilienscout24.de)",
+      "WebFetch(domain:omnes.f-bau.ai)",
+      "Bash(npm_config_cache=__TRACKED_VAR__/npmcache npx ctx7@latest docs /prosekit/prosekit 'svelte component ProseKit useDocChange mount editor view svelte 5 example')",
+      "Bash(cat \"src/routes/\\(app\\)/admin/+layout.server.ts\")",
+      "Bash(cat \"src/routes/\\(app\\)/admin/+layout.ts\")"
     ]
   }
 }
