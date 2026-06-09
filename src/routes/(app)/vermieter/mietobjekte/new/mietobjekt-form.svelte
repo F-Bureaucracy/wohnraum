@@ -76,6 +76,7 @@ let addressSearchLoading = $state(false);
 let selectedSuggestionIndex = $state(0);
 let addressSearchRequest = 0;
 let selectedAddressQuery = $state("");
+let addressSearchContainer: HTMLDivElement;
 let imageInput: HTMLInputElement;
 let imageUploading = $state(0);
 
@@ -180,6 +181,18 @@ function selectAddressSuggestion(suggestion: AddressSuggestion) {
 	addressSuggestions = [];
 }
 
+function closeAddressSearch() {
+	addressSearchRequest += 1;
+	addressSearchOpen = false;
+	addressSearchLoading = false;
+}
+
+function handlePagePointerDown(event: PointerEvent) {
+	if (!addressSearchOpen && !addressSearchLoading) return;
+	if (event.target instanceof Node && addressSearchContainer?.contains(event.target)) return;
+	closeAddressSearch();
+}
+
 function handleAddressKeydown(event: KeyboardEvent) {
 	if (!addressSearchOpen || addressSuggestions.length === 0) return;
 
@@ -194,7 +207,7 @@ function handleAddressKeydown(event: KeyboardEvent) {
 		event.preventDefault();
 		selectAddressSuggestion(addressSuggestions[selectedSuggestionIndex]);
 	} else if (event.key === "Escape") {
-		addressSearchOpen = false;
+		closeAddressSearch();
 	}
 }
 
@@ -268,7 +281,17 @@ async function onImagesChosen(event: Event) {
 function removeImage(index: number) {
 	$formData.images = ($formData.images ?? []).filter((_, i) => i !== index);
 }
+
+function setAvailableFromToday() {
+	const today = new Date();
+	const year = today.getFullYear();
+	const month = String(today.getMonth() + 1).padStart(2, "0");
+	const day = String(today.getDate()).padStart(2, "0");
+	$formData.availableFrom = `${year}-${month}-${day}`;
+}
 </script>
+
+<svelte:window onpointerdown={handlePagePointerDown} />
 
 <form
 	method="POST"
@@ -325,7 +348,7 @@ function removeImage(index: number) {
 						<Form.Control>
 							{#snippet children({ props })}
 								<Form.Label>Straße</Form.Label>
-								<div class="relative">
+								<div class="relative" bind:this={addressSearchContainer}>
 									<Input
 										{...props}
 										bind:value={$formData.street}
@@ -338,7 +361,7 @@ function removeImage(index: number) {
 										}}
 										onblur={() => {
 											window.setTimeout(() => {
-												addressSearchOpen = false;
+												closeAddressSearch();
 											}, 120);
 										}}
 										onkeydown={handleAddressKeydown}
@@ -559,7 +582,17 @@ function removeImage(index: number) {
 					<Form.Control>
 						{#snippet children({ props })}
 							<Form.Label>Verfügbar ab</Form.Label>
-							<Input {...props} type="date" bind:value={$formData.availableFrom} />
+							<div class="flex items-center gap-2">
+								<Input
+									{...props}
+									class="flex-1"
+									type="date"
+									bind:value={$formData.availableFrom}
+								/>
+								<Button type="button" variant="outline" onclick={setAvailableFromToday}>
+									Heute
+								</Button>
+							</div>
 						{/snippet}
 					</Form.Control>
 					<Form.FieldErrors />
