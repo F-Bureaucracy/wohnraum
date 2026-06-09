@@ -36,23 +36,29 @@ type CreateReportResponse = {
 /**
  * Drives a report row from `generating` to `ready` (or `error`). Safe to call
  * without awaiting; it persists its own outcome and never throws.
+ *
+ * When `demo` is set, the demo endpoints (`/demo/reports`) are used instead of
+ * the production ones, so reports are generated from sample data.
  */
 export async function generateReport(
   reportId: string,
   prompt: string,
+  options: { demo?: boolean } = {},
 ): Promise<void> {
+  // f-omnes mirrors the production report endpoints under `/demo`.
+  const base = options.demo ? `${OMNES_URL}/demo` : OMNES_URL;
   try {
     const connectionString = env.DATABASE_URL;
     if (!connectionString) throw new Error("Missing env var DATABASE_URL");
 
-    const res = await fetch(`${OMNES_URL}/reports`, {
+    const res = await fetch(`${base}/reports`, {
       method: "POST",
       headers: omnesHeaders({ "content-type": "application/json" }),
       body: JSON.stringify({ connection_string: connectionString, prompt }),
     });
     if (!res.ok) {
       throw new Error(
-        `f-omnes /reports responded ${res.status}: ${await safeText(res)}`,
+        `f-omnes ${base}/reports responded ${res.status}: ${await safeText(res)}`,
       );
     }
     const data = (await res.json()) as CreateReportResponse;
@@ -62,7 +68,7 @@ export async function generateReport(
     // whole report, the HTML is the primary artifact.
     let pdfStorageKey: string | null = null;
     try {
-      const pdfBytes = await fetchPdf(data.report_id, data.pdf_url);
+      const pdfBytes = await fetchPdf(base, data.report_id, data.pdf_url);
       if (pdfBytes) {
         pdfStorageKey = `reports/${reportId}.pdf`;
         await putObject(pdfStorageKey, pdfBytes, "application/pdf");
@@ -94,12 +100,13 @@ export async function generateReport(
 }
 
 async function fetchPdf(
+  base: string,
   omnesReportId: string,
   pdfUrl: string,
 ): Promise<Uint8Array | null> {
   const url = pdfUrl.startsWith("http")
     ? pdfUrl
-    : `${OMNES_URL}/reports/${omnesReportId}/pdf`;
+    : `${base}/reports/${omnesReportId}/pdf`;
   const res = await fetch(url, { headers: omnesHeaders() });
   if (!res.ok) return null;
   return new Uint8Array(await res.arrayBuffer());

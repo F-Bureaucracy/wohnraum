@@ -1,4 +1,9 @@
-import { Building2Icon, SlidersHorizontalIcon, UserIcon } from "@lucide/svelte";
+import {
+  Building2Icon,
+  SlidersHorizontalIcon,
+  SparklesIcon,
+  UserIcon,
+} from "@lucide/svelte";
 
 type NavItem = { title: string; href: string; icon: typeof UserIcon };
 type NavGroup = { section: string; items: NavItem[] };
@@ -30,6 +35,11 @@ export function buildSettingsNav({
         title: "Filter",
         href: "/settings/organization/filters",
         icon: SlidersHorizontalIcon,
+      });
+      items.push({
+        title: "Features",
+        href: "/settings/organization/features",
+        icon: SparklesIcon,
       });
     }
     nav.push({ section: "Organisation", items });

@@ -233,6 +233,28 @@ export const appAuditLog = pgTable(
   ],
 );
 
+// Per-organization settings, currently just a bag of boolean feature flags keyed
+// by feature id (see $lib/features). One row per organization, created lazily on
+// first toggle.
+export const organizationSettings = pgTable("organization_settings", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: text("organization_id")
+    .notNull()
+    .unique()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  features: jsonb("features")
+    .$type<Record<string, boolean>>()
+    .notNull()
+    .default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
 // AI-generated data reports (f-omnes). A case worker enters a prompt; the report
 // is generated asynchronously, so a row starts as `generating` and is later
 // flipped to `ready` (with the editable HTML + the PDF stored in S3) or `error`.
