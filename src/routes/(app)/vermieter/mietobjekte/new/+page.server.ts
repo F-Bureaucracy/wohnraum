@@ -6,9 +6,13 @@ import { writeAppAuditLog } from "$lib/server/audit";
 import { db } from "$lib/server/db";
 import { mietobjekt } from "$lib/server/db/schema";
 import { geocodeAddress } from "$lib/server/geocode";
-import { replaceMietobjektImages } from "$lib/server/mietobjekt-images";
+import {
+  replaceMietobjektImages,
+  storeRemoteImages,
+} from "$lib/server/mietobjekt-images";
 import { loadFilterDefinitions } from "$lib/server/filter-definitions";
 import { sanitizeFeatures } from "$lib/matching-flags";
+import { ListingImportError, importListing } from "$lib/server/listing-import";
 import type { Actions, PageServerLoad } from "./$types";
 import { mietobjektSchema } from "./schema";
 
@@ -32,11 +36,64 @@ export const load: PageServerLoad = async (event) => {
   const form = await superValidate(zod4(mietobjektSchema));
   form.data.organizationId = activeOrgId;
 
+  const importUrl = event.url.searchParams.get("import");
+  let importResult: ImportFeedback | null = null;
+  if (importUrl) {
+    try {
+      const { source, data, imageUrls, missing } =
+        await importListing(importUrl);
+      // Every key of the imported data maps onto a form field; copy the ones we
+      // actually extracted and leave the rest at their defaults.
+      for (const [key, value] of Object.entries(data)) {
+        if (value !== undefined) {
+          (form.data as Record<string, unknown>)[key] = value;
+        }
+      }
+      // Pull the listing's photos into our own storage and attach them as
+      // pending uploads, mirroring how manually chosen images are handled. A
+      // storage failure must not discard the field data we already extracted.
+      const images =
+        imageUrls.length > 0
+          ? await storeRemoteImages(imageUrls).catch((err) => {
+              console.error("[mietobjekt/new] image import failed", err);
+              return [];
+            })
+          : [];
+      if (images.length > 0) form.data.images = images;
+      importResult = {
+        status: "ok",
+        source,
+        missing,
+        imageCount: images.length,
+      };
+    } catch (err) {
+      if (err instanceof ListingImportError) {
+        importResult = { status: "error", message: err.message };
+      } else {
+        console.error("[mietobjekt/new] import failed", err);
+        importResult = {
+          status: "error",
+          message: "Der Import ist fehlgeschlagen.",
+        };
+      }
+    }
+  }
+
   return {
     form,
     organizations: orgs.map((o) => ({ id: o.id, name: o.name })),
+    importResult,
   };
 };
+
+type ImportFeedback =
+  | {
+      status: "ok";
+      source: "immoscout" | "immowelt";
+      missing: string[];
+      imageCount: number;
+    }
+  | { status: "error"; message: string };
 
 export const actions: Actions = {
   default: async (event) => {

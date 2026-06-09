@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { buttonVariants } from '$lib/components/ui/button/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
@@ -10,8 +12,11 @@
 	import EllipsisVerticalIcon from '@lucide/svelte/icons/ellipsis-vertical';
 	import DownloadIcon from '@lucide/svelte/icons/download';
 	import LinkIcon from '@lucide/svelte/icons/link';
+	import LoaderCircleIcon from '@lucide/svelte/icons/loader-circle';
 
 	let { createHref, createLabel }: { createHref: string; createLabel?: string } = $props();
+
+	const resolveDynamicHref = resolve as unknown as (href: string) => string;
 
 	type ImportSource = 'immoscout' | 'immowelt';
 
@@ -29,11 +34,25 @@
 	let dialogOpen = $state(false);
 	let source = $state<ImportSource>('immoscout');
 	let importUrl = $state('');
+	let importing = $state(false);
 
 	function openImport(next: ImportSource) {
 		source = next;
 		importUrl = '';
 		dialogOpen = true;
+	}
+
+	async function startImport() {
+		const url = importUrl.trim();
+		if (url.length === 0 || importing) return;
+		importing = true;
+		try {
+			// eslint-disable-next-line svelte/no-navigation-without-resolve
+			await goto(resolveDynamicHref(`${createHref}?import=${encodeURIComponent(url)}`));
+			dialogOpen = false;
+		} finally {
+			importing = false;
+		}
 	}
 
 	const meta = $derived(sourceMeta[source]);
@@ -89,16 +108,30 @@
 					type="url"
 					placeholder={meta.example}
 					bind:value={importUrl}
+					disabled={importing}
 					class="pl-9"
+					onkeydown={(event) => {
+						if (event.key === 'Enter') {
+							event.preventDefault();
+							startImport();
+						}
+					}}
 				/>
 			</div>
 			<p class="text-xs text-muted-foreground">Beispiel: {meta.example}</p>
 		</div>
 		<Dialog.Footer>
-			<Dialog.Close class={buttonVariants({ variant: 'outline' })}>Abbrechen</Dialog.Close>
-			<Button disabled={importUrl.trim().length === 0}>
-				<DownloadIcon class="size-4" />
-				Importieren
+			<Dialog.Close class={buttonVariants({ variant: 'outline' })} disabled={importing}>
+				Abbrechen
+			</Dialog.Close>
+			<Button disabled={importUrl.trim().length === 0 || importing} onclick={startImport}>
+				{#if importing}
+					<LoaderCircleIcon class="size-4 animate-spin" />
+					Wird importiert…
+				{:else}
+					<DownloadIcon class="size-4" />
+					Importieren
+				{/if}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

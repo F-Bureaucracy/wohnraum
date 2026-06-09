@@ -1,5 +1,9 @@
 {
   "permissions": {
-    "allow": ["WebFetch(domain:registry.npmjs.org)", "Bash(ctx7 docs *)"]
+    "allow": [
+      "WebFetch(domain:registry.npmjs.org)",
+      "Bash(ctx7 docs *)",
+      "WebFetch(domain:api.immobilienscout24.de)"
+    ]
   }
 }

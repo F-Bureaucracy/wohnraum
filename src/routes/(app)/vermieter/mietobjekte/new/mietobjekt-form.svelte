@@ -199,7 +199,11 @@ function handleAddressKeydown(event: KeyboardEvent) {
 }
 
 function imageUrl(image: MietobjektImage) {
-	return image.id ? resolve(`/api/mietobjekt-images/${image.id}`) : "";
+	if (image.id) return resolve(`/api/mietobjekt-images/${image.id}`);
+	if (image.storageKey) {
+		return resolve(`/api/s3/preview?key=${encodeURIComponent(image.storageKey)}`);
+	}
+	return "";
 }
 
 function formatImageSize(bytes?: number) {
@@ -642,7 +646,7 @@ function removeImage(index: number) {
 					<ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 						{#each $formData.images ?? [] as image, i (image.storageKey)}
 							<li class="overflow-hidden rounded-md border">
-								{#if image.id}
+								{#if imageUrl(image)}
 									<img
 										src={imageUrl(image)}
 										alt={image.fileName}

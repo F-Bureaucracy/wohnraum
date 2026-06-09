@@ -47,6 +47,22 @@ export function signUpload(key: string, contentType: string) {
   );
 }
 
+export async function putObject(
+  key: string,
+  body: Uint8Array,
+  contentType: string,
+) {
+  const { s3, bucket } = getClient();
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    }),
+  );
+}
+
 export function signDownload(key: string, fileName?: string) {
   const { s3, bucket } = getClient();
   return getSignedUrl(
