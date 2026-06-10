@@ -10,6 +10,8 @@
 // the portals may serve a bot-protection page instead of the listing, and not
 // every field exists in the structured data.
 
+import type { DemoListing } from "$lib/features";
+
 export type ListingSource = "immoscout" | "immowelt";
 
 export type ImportedListing = {
@@ -115,18 +117,41 @@ export async function importListing(
     );
   }
 
-  const wanted: Array<keyof ImportedListing> = [
-    "street",
-    "houseNumber",
-    "postalCode",
-    "city",
-    "livingArea",
-    "rooms",
-    "coldRent",
-  ];
-  const missing = wanted.filter((key) => data[key] === undefined);
+  const missing = WANTED.filter((key) => data[key] === undefined);
 
   return { source, data, imageUrls, missing };
+}
+
+// Fields we surface as "missing" when absent, so the case worker knows to fill
+// them in manually.
+const WANTED: Array<keyof ImportedListing> = [
+  "street",
+  "houseNumber",
+  "postalCode",
+  "city",
+  "livingArea",
+  "rooms",
+  "coldRent",
+];
+
+// Build an import result from admin-configured demo data instead of fetching a
+// portal. Used when the Demo-Import feature is active (see $lib/features); the
+// pasted URL only decides which portal label to show.
+export function demoListingToResult(
+  demo: DemoListing,
+  rawUrl: string,
+): ListingImportResult {
+  const { imageUrls, ...fields } = demo;
+  const data: ImportedListing = {};
+  for (const [key, value] of Object.entries(fields)) {
+    if (value !== undefined && value !== null && value !== "") {
+      // @ts-expect-error indexed assignment across the union is safe here.
+      data[key] = value;
+    }
+  }
+  const source = detectSource(rawUrl) ?? "immowelt";
+  const missing = WANTED.filter((key) => data[key] === undefined);
+  return { source, data, imageUrls: imageUrls ?? [], missing };
 }
 
 async function fetchHtml(url: URL): Promise<string> {

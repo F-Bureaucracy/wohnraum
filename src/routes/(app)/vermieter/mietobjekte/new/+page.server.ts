@@ -12,7 +12,12 @@ import {
 } from "$lib/server/mietobjekt-images";
 import { loadFilterDefinitions } from "$lib/server/filter-definitions";
 import { sanitizeFeatures } from "$lib/matching-flags";
-import { ListingImportError, importListing } from "$lib/server/listing-import";
+import {
+  ListingImportError,
+  demoListingToResult,
+  importListing,
+} from "$lib/server/listing-import";
+import { getActiveDemoListing } from "$lib/server/org-settings";
 import type { Actions, PageServerLoad } from "./$types";
 import { mietobjektSchema } from "./schema";
 
@@ -40,8 +45,12 @@ export const load: PageServerLoad = async (event) => {
   let importResult: ImportFeedback | null = null;
   if (importUrl) {
     try {
-      const { source, data, imageUrls, missing } =
-        await importListing(importUrl);
+      // When the global Demo-Import feature is active, ignore the pasted link
+      // and return the admin-configured demo listing instead of fetching.
+      const demo = await getActiveDemoListing();
+      const { source, data, imageUrls, missing } = demo
+        ? demoListingToResult(demo, importUrl)
+        : await importListing(importUrl);
       // Every key of the imported data maps onto a form field; copy the ones we
       // actually extracted and leave the rest at their defaults.
       for (const [key, value] of Object.entries(data)) {

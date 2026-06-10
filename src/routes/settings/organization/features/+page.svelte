@@ -4,9 +4,12 @@
 	import { ChevronLeftIcon } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import { MediaQuery } from 'svelte/reactivity';
-	import { FEATURES } from '$lib/features';
+	import { DEMO_IMPORT_FEATURE, FEATURES } from '$lib/features';
 	import { Switch } from '$lib/components/ui/switch/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Textarea } from '$lib/components/ui/textarea/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import type { PageData } from './$types';
 
 	const isWide = new MediaQuery('(min-width: 1024px)');
@@ -16,6 +19,12 @@
 	// Optimistic local copy of the flags; the server is updated on each toggle.
 	let enabled = $state<Record<string, boolean>>({ ...data.features });
 	let formEls: HTMLFormElement[] = $state([]);
+
+	const demo = data.demoListing ?? {};
+	let savingDemo = $state(false);
+	// Comma is the locale decimal separator the server parser expects.
+	const numStr = (v: number | undefined) =>
+		v === undefined ? '' : String(v).replace('.', ',');
 
 	async function toggle(key: string, value: boolean, index: number) {
 		enabled[key] = value;
@@ -72,6 +81,114 @@
 					/>
 				</form>
 			{/each}
+
+			{#if enabled[DEMO_IMPORT_FEATURE]}
+				<form
+					method="POST"
+					action="?/saveDemoListing"
+					class="space-y-4 rounded-lg border p-4"
+					use:enhance={() => {
+						savingDemo = true;
+						return async ({ result, update }) => {
+							savingDemo = false;
+							if (result.type === 'failure') {
+								toast.error('Demo-Daten konnten nicht gespeichert werden.');
+							} else {
+								toast.success('Demo-Daten gespeichert.');
+							}
+							await update({ reset: false });
+						};
+					}}
+				>
+					<div class="space-y-1">
+						<h2 class="text-sm font-medium">Demo-Daten für den Import</h2>
+						<p class="text-sm text-muted-foreground">
+							Diese Angaben werden bei aktivem Demo-Import unabhängig vom eingegebenen Link
+							übernommen.
+						</p>
+					</div>
+
+					<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+						<div class="space-y-1 sm:col-span-2">
+							<Label for="demo-street">Straße</Label>
+							<Input id="demo-street" name="street" value={demo.street ?? ''} />
+						</div>
+						<div class="space-y-1">
+							<Label for="demo-houseNumber">Hausnummer</Label>
+							<Input id="demo-houseNumber" name="houseNumber" value={demo.houseNumber ?? ''} />
+						</div>
+						<div class="space-y-1">
+							<Label for="demo-postalCode">PLZ</Label>
+							<Input id="demo-postalCode" name="postalCode" value={demo.postalCode ?? ''} />
+						</div>
+						<div class="space-y-1 sm:col-span-2">
+							<Label for="demo-city">Stadt</Label>
+							<Input id="demo-city" name="city" value={demo.city ?? ''} />
+						</div>
+						<div class="space-y-1">
+							<Label for="demo-livingArea">Wohnfläche (m²)</Label>
+							<Input id="demo-livingArea" name="livingArea" value={numStr(demo.livingArea)} />
+						</div>
+						<div class="space-y-1">
+							<Label for="demo-rooms">Zimmer</Label>
+							<Input id="demo-rooms" name="rooms" value={numStr(demo.rooms)} />
+						</div>
+						<div class="space-y-1">
+							<Label for="demo-bedrooms">Schlafzimmer</Label>
+							<Input id="demo-bedrooms" name="bedrooms" value={numStr(demo.bedrooms)} />
+						</div>
+						<div class="space-y-1">
+							<Label for="demo-coldRent">Kaltmiete (€)</Label>
+							<Input id="demo-coldRent" name="coldRent" value={numStr(demo.coldRent)} />
+						</div>
+						<div class="space-y-1">
+							<Label for="demo-operatingCosts">Nebenkosten (€)</Label>
+							<Input
+								id="demo-operatingCosts"
+								name="operatingCosts"
+								value={numStr(demo.operatingCosts)}
+							/>
+						</div>
+						<div class="space-y-1">
+							<Label for="demo-heatingCosts">Heizkosten (€)</Label>
+							<Input id="demo-heatingCosts" name="heatingCosts" value={numStr(demo.heatingCosts)} />
+						</div>
+						<div class="space-y-1">
+							<Label for="demo-deposit">Kaution (€)</Label>
+							<Input id="demo-deposit" name="deposit" value={numStr(demo.deposit)} />
+						</div>
+					</div>
+
+					<div class="space-y-1">
+						<Label for="demo-description">Beschreibung</Label>
+						<Textarea
+							id="demo-description"
+							name="description"
+							rows={4}
+							value={demo.description ?? ''}
+						/>
+					</div>
+
+					<div class="space-y-1">
+						<Label for="demo-imageUrls">Bild-URLs (eine pro Zeile)</Label>
+						<Textarea
+							id="demo-imageUrls"
+							name="imageUrls"
+							rows={4}
+							placeholder="https://…/foto-1.jpg"
+							value={(demo.imageUrls ?? []).join('\n')}
+						/>
+						<p class="text-xs text-muted-foreground">
+							Die Bilder müssen für den Server öffentlich erreichbar sein; sie werden beim Import in
+							den eigenen Speicher kopiert.
+						</p>
+					</div>
+
+					<div class="flex justify-end">
+						<Button type="submit" disabled={savingDemo}>Demo-Daten speichern</Button>
+					</div>
+				</form>
+			{/if}
 		</div>
 	</div>
 </div>

@@ -10,6 +10,7 @@ import {
   timestamp,
   unique,
 } from "drizzle-orm/pg-core";
+import type { DemoListing } from "$lib/features";
 import { organization, user } from "./auth.schema";
 
 export const task = pgTable("task", {
@@ -248,6 +249,9 @@ export const organizationSettings = pgTable("organization_settings", {
     .$type<Record<string, boolean>>()
     .notNull()
     .default({}),
+  // Demo listing applied by the importer when the `demo-import` feature is on
+  // (see $lib/features.DemoListing). Null until configured.
+  demoListing: jsonb("demo_listing").$type<DemoListing>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
