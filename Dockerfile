@@ -29,8 +29,7 @@ ENV HOST=0.0.0.0
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/build ./build
 COPY package.json ./
+USER bun
 EXPOSE 3000
 CMD ["bun", "./build/index.js"]
-
-
 
