@@ -16,6 +16,5 @@
 .vscode
 Dockerfile
 build
-drizzle
 node_modules
 package
